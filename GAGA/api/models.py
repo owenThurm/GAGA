@@ -33,7 +33,7 @@ class UserManager(BaseUserManager):
 
 class User(AbstractBaseUser):
   username = models.CharField(max_length=30, unique=True)
-  password = models.CharField(max_length=15)
+  password = models.CharField(max_length=250)
   email = models.EmailField(max_length=100, unique=True)
   date_joined = models.DateTimeField(verbose_name="date joined", auto_now_add=True)
   last_login = models.DateTimeField(verbose_name="last login", auto_now=True)
