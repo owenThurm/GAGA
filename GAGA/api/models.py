@@ -32,7 +32,7 @@ class UserManager(BaseUserManager):
 
 
 class User(AbstractBaseUser):
-  username = models.CharField(max_length=15, unique=True)
+  username = models.CharField(max_length=30, unique=True)
   password = models.CharField(max_length=15)
   email = models.EmailField(max_length=100, unique=True)
   date_joined = models.DateTimeField(verbose_name="date joined", auto_now_add=True)
@@ -41,7 +41,7 @@ class User(AbstractBaseUser):
   is_superuser = models.BooleanField(default=False)
   is_staff = models.BooleanField(default=False)
   is_active = models.BooleanField(default=True)
-  brand_name = models.CharField(max_length=20)
+  brand_name = models.CharField(max_length=30)
 
   USERNAME_FIELD = "email"
   REQUIRED_FIELDS = ["username", "brand_name", "password"]
@@ -59,19 +59,19 @@ class User(AbstractBaseUser):
 
 
 class Promo_Account(models.Model):
-  promo_username = models.CharField(max_length=20, unique=True)
+  promo_username = models.CharField(max_length=30, unique=True)
   promo_password = models.CharField(max_length=20)
   to_run_at = models.DateTimeField()
   activated = models.BooleanField(default=False)
   proxy = models.CharField(max_length=120, default=1)
-  target_account = models.CharField(max_length=20)
+  target_account = models.CharField(max_length=30)
   user = models.ForeignKey(User, on_delete=models.CASCADE)
 
   def __str__(self):
     return self.promo_username
 
 class Commented_On_Account(models.Model):
-  commented_on_account_username = models.CharField(max_length=20)
+  commented_on_account_username = models.CharField(max_length=30)
   user = models.ForeignKey(User, on_delete=models.CASCADE)
 
   def __str__(self):
