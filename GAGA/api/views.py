@@ -4,7 +4,7 @@ from rest_framework.response import Response
 from .serializers import UserSerializer, PromoSerializer, AuthenticationSerializer
 from .serializers import CommentedAccountsSerializer, CommentedAccountSerializer
 from . import models
-from django.contrib.auth.hashers import make_password, check_password
+from django.contrib.auth import authenticate
 from .utils import add_to_queue
 from datetime import datetime
 import pytz
@@ -145,6 +145,11 @@ class AuthenticationAPIView(views.APIView):
 
     if auth_serializer.is_valid():
       # authenticate
-      pass
+      user = authenticate(email=auth_serializer.data['email'], password=auth_serializer.data['password'])
+      if user is None:
+        # did not pass authentication
+        return Response({"message": "invalid credentials", "authenticated": False})
+      else:
+        return Response({"message": "successfully authenticated", "authenticated": True})
     else:
       return Response({"message": "invalid", "data": auth_serializer})
