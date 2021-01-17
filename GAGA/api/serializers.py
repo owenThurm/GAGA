@@ -6,7 +6,17 @@ class UserSerializer(serializers.ModelSerializer):
 
   class Meta:
     model = User
-    fields = ('id', 'username', 'password', 'email')
+    fields = ('id', 'username', 'email', 'brand_name', 'password')
+
+  def create(self, validated_data):
+    user = User.objects.create_user(
+      validated_data['email'],
+      validated_data['username'],
+      validated_data['brand_name'],
+      validated_data['password']
+    )
+
+    return user
 
 class PromoSerializer(serializers.ModelSerializer):
   """Serializes a User's Promo Account"""

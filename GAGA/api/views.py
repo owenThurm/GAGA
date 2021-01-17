@@ -36,9 +36,6 @@ class UserAPIView(views.APIView):
     user_serializer = UserSerializer(data=request.data)
 
     if user_serializer.is_valid():
-
-      #encrypt password
-
       user_serializer.save()
       return Response({'message': 'saved', 'data': user_serializer.data})
     else:
