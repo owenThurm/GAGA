@@ -5,5 +5,6 @@ from . import views
 urlpatterns = [
     url('user', views.UserAPIView.as_view()),
     url('promo', views.PromoAPIView.as_view()),
-    url('commentedaccounts', views.CommentedAccountsAPIView.as_view())
+    url('commentedaccounts', views.CommentedAccountsAPIView.as_view()),
+    url('authenticate', views.AuthenticationAPIView.as_view())
 ]
