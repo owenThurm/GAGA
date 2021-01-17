@@ -44,7 +44,7 @@ class User(AbstractBaseUser):
   brand_name = models.CharField(max_length=20)
 
   USERNAME_FIELD = "email"
-  REQUIRED_FIELDS = ["username", "email", "brand_name", "password"]
+  REQUIRED_FIELDS = ["username", "brand_name", "password"]
 
   objects = UserManager()
 
