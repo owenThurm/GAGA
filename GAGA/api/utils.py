@@ -12,6 +12,8 @@ from rq import Queue
 from random import randint
 import requests
 from .models import User
+from .models import Promo_Account
+from .models import Commented_On_Account
 
 LAMBDA_URL = 'https://7r2oqaxnxb.execute-api.us-east-1.amazonaws.com/default/InstaBot'
 
@@ -31,6 +33,13 @@ def comment_round(promo_username, promo_password, promo_target, promo_proxy):
   print('called func<<<<<<')
   print(f'''Comment round for {promo_username} with password: {promo_password},
   targeting: {promo_target}, with proxy: {promo_proxy}''')
+
+  promo_account = Promo_Account.objects.get(promo_username=promo_username)
+  print(promo_account.user)
+
+  accounts_already_commented_on = promo_account.user.commented_on_account_set.all()
+  print(accounts_already_commented_on)
+  print(list(accounts_already_commented_on))
 
 
   #to run at = response from aws -> get the finish time from the last comment
