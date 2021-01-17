@@ -34,6 +34,7 @@ class UserAPIView(views.APIView):
 
   def post(self, request, format=None):
     print('called post, request: ', request.data)
+    request.data['user']
     serializer = UserSerializer(data=request.data)
 
     if serializer.is_valid():
@@ -68,7 +69,7 @@ class PromoAPIView(views.APIView):
     to_run_at must be in utc time!'''
     serializer = PromoSerializer(data=request.data)
     time_to_run = datetime.strptime(request.data['to_run_at'], '%Y-%m-%dT%H:%M')
-    add_to_queue(request.data['username'], request.data['password'],
+    add_to_queue(request.data['promo_username'], request.data['promo_password'],
      request.data['target_account'], request.data['proxy'],
       time_to_run)
 

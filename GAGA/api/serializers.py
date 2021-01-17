@@ -12,4 +12,4 @@ class PromoSerializer(serializers.ModelSerializer):
   """Serializes a User's Promo Account"""
   class Meta:
     model = Promo_Account
-    fields = ('username', 'password', 'activated', 'proxy', 'target_account', 'user', 'to_run_at')
+    fields = ('promo_username', 'password', 'activated', 'proxy', 'target_account', 'user', 'to_run_at')
