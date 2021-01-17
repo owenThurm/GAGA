@@ -22,7 +22,7 @@ class UserManager(BaseUserManager):
     return user
 
   def create_superuser(self, email, username, password, brand_name='Genuine Apparel'):
-    user = self.model(email=self.normalize_email(email), password=password,
+    user = self.create_user(email=self.normalize_email(email), password=password,
                       username=username, brand_name=brand_name)
     user.is_admin = True
     user.is_staff = True
