@@ -16,7 +16,7 @@ class PromoSerializer(serializers.ModelSerializer):
 
 class CommentedAccountsSerializer(serializers.Serializer):
   """Serializes accounts commented on for a given user"""
-  promo_username = serializers.CharField(max_length=20)
+  promo_username = serializers.CharField(max_length=30)
   commented_on_accounts = serializers.ListSerializer(child=serializers.CharField())
 
 class CommentedAccountSerializer(serializers.ModelSerializer):
@@ -27,5 +27,5 @@ class CommentedAccountSerializer(serializers.ModelSerializer):
 
 class AuthenticationSerializer(serializers.Serializer):
   """Serializes authentication request bodies"""
-  username = serializers.CharField(max_length=15)
+  username = serializers.CharField(max_length=30)
   password = serializers.CharField(max_length=15)
