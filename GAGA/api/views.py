@@ -3,6 +3,7 @@ from rest_framework import views
 from rest_framework.response import Response
 from .serializers import UserSerializer, PromoSerializer, AuthenticationSerializer
 from .serializers import CommentedAccountsSerializer, CommentedAccountSerializer
+from .serializers import ActivationSerializer
 from . import models
 from django.contrib.auth import authenticate
 from .utils import add_to_queue
@@ -41,8 +42,6 @@ class UserAPIView(views.APIView):
     else:
       return Response({"message": "invalid user", "data": user_serializer.data})
 
-
-
 class PromoAPIView(views.APIView):
   """APIView for Promo Accounts"""
 
@@ -68,22 +67,14 @@ class PromoAPIView(views.APIView):
     to_run_at must be in utc time!'''
 
     user_username = request.data['user']
-
     request.data['user'] = models.User.objects.get(username=user_username).id
-
     promo_serializer = PromoSerializer(data=request.data)
-    time_to_run = datetime.strptime(request.data['to_run_at'], '%Y-%m-%dT%H:%M')
-    add_to_queue(request.data['promo_username'], request.data['promo_password'],
-     request.data['target_account'], request.data['proxy'],
-      time_to_run)
 
     if promo_serializer.is_valid():
       promo_serializer.save()
       return Response({"message": "saved", "data": promo_serializer.data})
     else:
       return Response({"message": "invalid", "data": promo_serializer.errors})
-
-
 
 class CommentedAccountsAPIView(views.APIView):
   '''APIView for adding and accessing commented on accounts for each user'''
@@ -129,8 +120,6 @@ class CommentedAccountsAPIView(views.APIView):
     else:
       return Response({"message": "invalid", "data": commented_accounts_serializer.data})
 
-
-
 class AuthenticationAPIView(views.APIView):
   '''An APIView for authenticating users'''
 
@@ -153,3 +142,34 @@ class AuthenticationAPIView(views.APIView):
         return Response({"message": "successfully authenticated", "authenticated": True})
     else:
       return Response({"message": "invalid", "data": auth_serializer})
+
+  class ActivateAPIView(views.APIView):
+    '''An APIView for activating promo accounts'''
+
+    class_serializers = ActivationSerializer
+
+    def post(self, request, format=None):
+      '''expects a promo_username in the body'''
+
+      promo_username = request.data['promo_username']
+      promo_account = models.Promo_Account.objects.get(promo_username= promo_username)
+      if not promo_account.is_queued:
+        print(f'adding {promo_username} to the queue')
+        add_to_queue(promo_username, promo_account.promo_password,
+        promo_account.target_account, promo_account.proxy)
+        promo_account.is_queued = True
+      if not promo_account.activated:
+        promo_account.activated = True
+      promo_account.save()
+
+  class DeactivateAPIView(views.APIView):
+    '''An APIView for deactivating promo accounts'''
+
+    def post(self, request, format=None):
+      '''expects a promo_username in the body'''
+
+      promo_username = request.data['promo_username']
+      promo_account = models.Promo_Account.objects.get(promo_username= promo_username)
+      if promo_account.activated:
+        promo_account.activated = False
+        promo_account.save()

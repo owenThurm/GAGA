@@ -39,3 +39,7 @@ class AuthenticationSerializer(serializers.Serializer):
   """Serializes authentication request bodies"""
   email = serializers.CharField(max_length=30)
   password = serializers.CharField(max_length=15)
+
+  class ActivationSerializer(serializers.Serializer):
+    """Serializers a promo account acitvation/deactivation call"""
+    promo_username = serializers.CharField(max_length=30)

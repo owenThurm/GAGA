@@ -62,11 +62,12 @@ class User(AbstractBaseUser):
 class Promo_Account(models.Model):
   promo_username = models.CharField(max_length=30, unique=True)
   promo_password = models.CharField(max_length=20)
-  to_run_at = models.DateTimeField()
   activated = models.BooleanField(default=False)
   proxy = models.CharField(max_length=120, default=1)
   target_account = models.CharField(max_length=30)
   user = models.ForeignKey(User, on_delete=models.CASCADE)
+  comment_rounds_today = models.IntegerField(default=0)
+  is_queued = models.BooleanField(default=False)
 
   def __str__(self):
     return self.promo_username

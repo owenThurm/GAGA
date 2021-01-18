@@ -20,14 +20,9 @@ LAMBDA_URL = 'https://7r2oqaxnxb.execute-api.us-east-1.amazonaws.com/default/Ins
 redis_server = Redis()
 queue = Queue(connection=redis_server)
 
-def add_to_queue(promo_username, promo_password, promo_target, promo_proxy, to_run_at):
-  print(f'adding {promo_username} to queue at ', to_run_at)
-
-  print('TO RUN AT: >>>', to_run_at)
+def add_to_queue(promo_username, promo_password, promo_target, promo_proxy):
+  print(f'adding {promo_username} to queue at ')
   queue.enqueue_in(timedelta(minutes=0), comment_round, promo_username, promo_password, promo_target, promo_proxy)
-
-
-
 
 def comment_round(promo_username, promo_password, promo_target, promo_proxy):
   print('called func<<<<<<')
@@ -41,20 +36,33 @@ def comment_round(promo_username, promo_password, promo_target, promo_proxy):
   print(accounts_already_commented_on)
   print(list(accounts_already_commented_on))
 
+  comment_rounds_today = promo_account.comment_rounds_today
+  print('Comment Rounds Today: ', comment_rounds_today)
 
   #to run at = response from aws -> get the finish time from the last comment
   promo_attributes = {
-    'username': promo_username,
-    'password': promo_password,
-    'target': promo_target,
+    'promo_username': promo_username,
+    'promo_password': promo_password,
+    'target_account': promo_target,
     'proxy': promo_proxy
   }
 
-  #requests.post(LAMBDA_URL, json=promo_attributes)
+  if promo_account.activated:
+    pass
+    #requests.post(LAMBDA_URL, json=promo_attributes)
 
-  continue_queue(promo_username, promo_password, promo_target, promo_proxy)
+  promo_account.comment_rounds_today += 1
+  promo_account.save()
 
-def continue_queue(promo_username, promo_password, promo_target, promo_proxy):
+  sleep_until_tomorrow = promo_account.comment_rounds_today >= 8
+
+  continue_queue(promo_username, promo_password, promo_target, promo_proxy, sleep_until_tomorrow)
+
+def continue_queue(promo_username, promo_password, promo_target, promo_proxy, sleep_until_tomorrow):
   print('continuing queue')
-  queue.enqueue_in(timedelta(minutes=randint(160,200)), comment_round, promo_username, promo_password, promo_target, promo_proxy)
+
+  if sleep_until_tomorrow:
+    queue.enqueue_in(timedelta(hours=16, minutes=randint(50,70)), comment_round, promo_username, promo_password, promo_target, promo_proxy)
+  else:
+    queue.enqueue_in(timedelta(seconds=5), comment_round, promo_username, promo_password, promo_target, promo_proxy)
 
