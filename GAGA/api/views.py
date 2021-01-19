@@ -181,7 +181,6 @@ class ActivateAPIView(views.APIView):
     else:
       return Response({"message": "invalid", "data": activation_serializer.data})
 
-
 class DeactivateAPIView(views.APIView):
   '''An APIView for deactivating promo accounts'''
 
