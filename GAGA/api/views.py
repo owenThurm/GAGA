@@ -151,16 +151,19 @@ class AuthenticationAPIView(views.APIView):
       else:
         return Response({"message": "successfully authenticated", "authenticated": True})
     else:
-      return Response({"message": "invalid", "data": auth_serializer})
+      return Response({"message": "invalid", "data": auth_serializer.data})
 
-  class ActivateAPIView(views.APIView):
-    '''An APIView for activating promo accounts'''
+class ActivateAPIView(views.APIView):
+  '''An APIView for activating promo accounts'''
 
-    class_serializers = ActivationSerializer
+  class_serializers = ActivationSerializer
 
-    def post(self, request, format=None):
-      '''expects a promo_username in the body'''
+  def post(self, request, format=None):
+    '''expects a promo_username in the body'''
 
+    activation_serializer = ActivationSerializer(data=request.data)
+
+    if activation_serializer.is_valid():
       promo_username = request.data['promo_username']
       promo_account = models.Promo_Account.objects.get(promo_username= promo_username)
       if not promo_account.is_queued:
@@ -168,18 +171,33 @@ class AuthenticationAPIView(views.APIView):
         add_to_queue(promo_username, promo_account.promo_password,
         promo_account.target_account, promo_account.proxy)
         promo_account.is_queued = True
-      if not promo_account.activated:
+        if not promo_account.activated:
+          promo_account.activated = True
+        promo_account.save()
+      elif not promo_account.activated:
         promo_account.activated = True
-      promo_account.save()
+        promo_account.save()
+      return Response({"message": "activated", "data": activation_serializer.data})
+    else:
+      return Response({"message": "invalid", "data": activation_serializer.data})
 
-  class DeactivateAPIView(views.APIView):
-    '''An APIView for deactivating promo accounts'''
 
-    def post(self, request, format=None):
-      '''expects a promo_username in the body'''
+class DeactivateAPIView(views.APIView):
+  '''An APIView for deactivating promo accounts'''
 
+  class_serializer = ActivationSerializer
+
+  def post(self, request, format=None):
+    '''expects a promo_username in the body'''
+
+    deactivation_serializer = ActivationSerializer(data=request.data)
+
+    if deactivation_serializer.is_valid():
       promo_username = request.data['promo_username']
       promo_account = models.Promo_Account.objects.get(promo_username= promo_username)
       if promo_account.activated:
         promo_account.activated = False
         promo_account.save()
+      return Response({"message": "deactivated", "data": deactivation_serializer.data})
+    else:
+      return Response({"message": "invalid", "data": deactivation_serializer.data})
