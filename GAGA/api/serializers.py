@@ -22,7 +22,7 @@ class PromoSerializer(serializers.ModelSerializer):
   """Serializes a User's Promo Account"""
   class Meta:
     model = Promo_Account
-    fields = ('promo_username', 'promo_password', 'activated', 'proxy', 'target_account', 'user', 'to_run_at')
+    fields = ('promo_username', 'promo_password', 'proxy', 'target_account', 'user')
 
 class CommentedAccountsSerializer(serializers.Serializer):
   """Serializes accounts commented on for a given user"""

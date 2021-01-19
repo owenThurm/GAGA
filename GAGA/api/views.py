@@ -63,8 +63,18 @@ class PromoAPIView(views.APIView):
     return Response(promo_serializer.data)
 
   def post(self, request, format=None):
-    '''post a promo and add it to the recurring queue.
-    to_run_at must be in utc time!'''
+    '''post a promo and add it to the recurring queue.'''
+    '''
+    Expects the following format:
+
+    {
+      promo_username: "promo account username",
+      promo_password: "promo account password",
+      promo_target: "promo target account",
+      proxy: "promo acccount proxy",
+      user: "Growth Automation user username who owns promo account"
+    }
+    '''
 
     user_username = request.data['user']
     request.data['user'] = models.User.objects.get(username=user_username).id
