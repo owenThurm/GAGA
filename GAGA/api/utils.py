@@ -48,7 +48,7 @@ def comment_round(promo_username, promo_password, promo_target, promo_proxy):
   }
 
   if promo_account.activated:
-    pass
+    print('comment round ran>>>')
     #requests.post(LAMBDA_URL, json=promo_attributes)
 
   promo_account.comment_rounds_today += 1
@@ -64,5 +64,4 @@ def continue_queue(promo_username, promo_password, promo_target, promo_proxy, sl
   if sleep_until_tomorrow:
     queue.enqueue_in(timedelta(hours=16, minutes=randint(50,70)), comment_round, promo_username, promo_password, promo_target, promo_proxy)
   else:
-    queue.enqueue_in(timedelta(seconds=5), comment_round, promo_username, promo_password, promo_target, promo_proxy)
-
+    queue.enqueue_in(timedelta(seconds=30), comment_round, promo_username, promo_password, promo_target, promo_proxy)
