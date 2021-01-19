@@ -71,4 +71,4 @@ def continue_queue(promo_username, promo_password, promo_target, promo_proxy, sl
     queue.enqueue_in(timedelta(hours=16, minutes=randint(50,70)), comment_round, promo_username, promo_password, promo_target, promo_proxy)
 
   else:
-    queue.enqueue_in(timedelta(seconds=30), comment_round, promo_username, promo_password, promo_target, promo_proxy)
+    queue.enqueue_in(timedelta(minutes=randint(50,70)), comment_round, promo_username, promo_password, promo_target, promo_proxy)
