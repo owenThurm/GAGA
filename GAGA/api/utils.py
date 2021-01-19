@@ -47,14 +47,20 @@ def comment_round(promo_username, promo_password, promo_target, promo_proxy):
     'proxy': promo_proxy
   }
 
+  print(promo_account.activated)
+
   if promo_account.activated:
     print('comment round ran>>>')
     #requests.post(LAMBDA_URL, json=promo_attributes)
 
   promo_account.comment_rounds_today += 1
   promo_account.save()
+  sleep_until_tomorrow = False
+  if promo_account.comment_rounds_today >= 8:
+    sleep_until_tomorrow = True
+    promo_account.comment_rounds_today = 0
+    promo_account.save()
 
-  sleep_until_tomorrow = promo_account.comment_rounds_today >= 8
 
   continue_queue(promo_username, promo_password, promo_target, promo_proxy, sleep_until_tomorrow)
 
@@ -63,5 +69,6 @@ def continue_queue(promo_username, promo_password, promo_target, promo_proxy, sl
 
   if sleep_until_tomorrow:
     queue.enqueue_in(timedelta(hours=16, minutes=randint(50,70)), comment_round, promo_username, promo_password, promo_target, promo_proxy)
+
   else:
     queue.enqueue_in(timedelta(seconds=30), comment_round, promo_username, promo_password, promo_target, promo_proxy)
