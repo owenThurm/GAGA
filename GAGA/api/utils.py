@@ -32,9 +32,7 @@ def comment_round(promo_username, promo_password, promo_target, promo_proxy):
   promo_account = Promo_Account.objects.get(promo_username=promo_username)
   print(promo_account.user)
 
-  accounts_already_commented_on = promo_account.user.commented_on_account_set.all()
-  print(accounts_already_commented_on)
-  print(list(accounts_already_commented_on))
+  accounts_already_commented_on = list(promo_account.user.commented_on_account_set.all())
 
   comment_rounds_today = promo_account.comment_rounds_today
   print('Comment Rounds Today: ', comment_rounds_today)
@@ -44,7 +42,8 @@ def comment_round(promo_username, promo_password, promo_target, promo_proxy):
     'promo_username': promo_username,
     'promo_password': promo_password,
     'target_account': promo_target,
-    'proxy': promo_proxy
+    'proxy': promo_proxy,
+    'accounts_already_commented_on': accounts_already_commented_on
   }
 
   print(promo_account.activated)
