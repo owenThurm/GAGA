@@ -76,4 +76,4 @@ class Commented_On_Account(models.Model):
   user = models.ForeignKey(User, on_delete=models.CASCADE)
 
   def __str__(self):
-    return self.username
+    return self.commented_on_account_username

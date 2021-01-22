@@ -25,12 +25,13 @@ SECRET_KEY = '^x-^)by&rcu3i=0dcx&j=cd%13b8l6c(e5&5n+^^l*bnp!6#u='
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['34.226.214.56']
 
 
 # Application definition
 
 INSTALLED_APPS = [
+    'rest_framework',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -38,7 +39,6 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'api',
-    'rest_framework',
     'django.contrib.postgres'
 ]
 
@@ -79,9 +79,11 @@ WSGI_APPLICATION = 'GAGA.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'app',
-        'USER': 'postgres',
-        'PASSWORD': 'MagicJohnson32!'
+        'NAME': 'dbapp',
+        'USER': 'owenthurm',
+        'PASSWORD': 'MagicJohnson32!',
+	'HOST': 'ls-a383f8c5437ef725f1fef69aae36ca4e3dcf36c9.cpq49b2dpiw0.us-east-1.rds.amazonaws.com',
+	'PORT': '5432'
     }
 }
 

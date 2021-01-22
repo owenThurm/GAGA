@@ -1,1 +1,14 @@
 .DS**
+supervisor**
+GAGA/conf/
+GAGA/GAGA/wsgi.py
+__pycache__**
+GAGA/__pycache__**
+GAGA/GAGA/__pycache__**
+**/__pycache__/**
+__pycache__/
+**__pycache__/
+*__pycache__/
+*/__pycache__/**
+__pycache__/**
+**pycache**
