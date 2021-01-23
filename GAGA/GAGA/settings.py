@@ -27,6 +27,10 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['34.226.214.56']
 
+CORS_ORIGIN_WHITELIST = [
+	'http://localhost:3000'
+]
+
 
 # Application definition
 
@@ -39,7 +43,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'api',
-    'django.contrib.postgres'
+    'django.contrib.postgres',
+    'corsheaders'
 ]
 
 MIDDLEWARE = [
@@ -47,6 +52,7 @@ MIDDLEWARE = [
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
