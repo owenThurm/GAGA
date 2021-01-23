@@ -22,9 +22,12 @@ class UserAPIView(views.APIView):
 
   def get(self, request, format=None):
     try:
-      user_id = request.query_params['id']
-      if(user_id != None):
-        user = models.User.objects.get(id=user_id)
+      user_username = request.query_params['username']
+      if(user_username != None):
+        try:
+          user = models.User.objects.get(username=user_username)
+        except Exception as e:
+          return Response({"message": "No user corresponding to: " + user_username})
         user_serializer = UserSerializer(user)
     except Exception as e:
       print(e)
@@ -52,9 +55,12 @@ class PromoAPIView(views.APIView):
 
   def get(self, request, format=None):
     try:
-      promo_id = request.query_params['id']
-      if(promo_id != None):
-        promo_account = models.Promo_Account.objects.get(id=promo_id)
+      promo_username = request.query_params['username']
+      if(promo_username != None):
+        try:
+          promo_account = models.Promo_Account.objects.get(promo_username=promo_username)
+        except Exception as e:
+          return Response({"message": "No promo account corresponding to username: " + promo_username})
         promo_serializer = PromoSerializer(promo_account)
     except Exception as e:
       print(e)
@@ -71,7 +77,6 @@ class PromoAPIView(views.APIView):
       promo_username: "promo account username",
       promo_password: "promo account password",
       promo_target: "promo target account",
-      proxy: "promo acccount proxy",
       user: "Growth Automation user username who owns promo account"
     }
     '''
@@ -166,18 +171,21 @@ class ActivateAPIView(views.APIView):
     if activation_serializer.is_valid():
       promo_username = request.data['promo_username']
       promo_account = models.Promo_Account.objects.get(promo_username= promo_username)
-      if not promo_account.is_queued:
-        print(f'adding {promo_username} to the queue')
-        add_to_queue(promo_username, promo_account.promo_password,
-        promo_account.target_account, promo_account.proxy)
-        promo_account.is_queued = True
-        if not promo_account.activated:
+      if not promo_account.under_review:
+        if not promo_account.is_queued:
+          print(f'adding {promo_username} to the queue')
+          add_to_queue(promo_username, promo_account.promo_password,
+          promo_account.target_account, promo_account.proxy)
+          promo_account.is_queued = True
+          if not promo_account.activated:
+            promo_account.activated = True
+          promo_account.save()
+        elif not promo_account.activated:
           promo_account.activated = True
-        promo_account.save()
-      elif not promo_account.activated:
-        promo_account.activated = True
-        promo_account.save()
-      return Response({"message": "activated", "data": activation_serializer.data})
+          promo_account.save()
+        return Response({"message": "activated", "data": activation_serializer.data})
+      else:
+        return Response({"message": "under review", "data": activation_serializer.data})
     else:
       return Response({"message": "invalid", "data": activation_serializer.data})
 
@@ -200,3 +208,6 @@ class DeactivateAPIView(views.APIView):
       return Response({"message": "deactivated", "data": deactivation_serializer.data})
     else:
       return Response({"message": "invalid", "data": deactivation_serializer.data})
+
+class Set_Proxy(views.APIView):
+  '''Sets the Proxy for an account'''
