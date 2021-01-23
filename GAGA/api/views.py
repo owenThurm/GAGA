@@ -3,7 +3,7 @@ from rest_framework import views
 from rest_framework.response import Response
 from .serializers import UserSerializer, PromoSerializer, AuthenticationSerializer
 from .serializers import CommentedAccountsSerializer, CommentedAccountSerializer
-from .serializers import ActivationSerializer
+from .serializers import ActivationSerializer, AddProxySerializer
 from . import models
 from django.contrib.auth import authenticate
 from .utils import add_to_queue
@@ -209,5 +209,42 @@ class DeactivateAPIView(views.APIView):
     else:
       return Response({"message": "invalid", "data": deactivation_serializer.data})
 
-class Set_Proxy(views.APIView):
+class SetProxyAPIView(views.APIView):
   '''Sets the Proxy for an account'''
+
+  class_serializer = AddProxySerializer
+
+  def post(self, request, format=None):
+    '''
+    expects the following body format:
+
+    {
+      "promo_username": "promoaccountusername1",
+      "proxy": "127.323.543.564.788..."
+    }
+    '''
+
+    proxy_review_serializer = AddProxySerializer(data=request.data)
+
+    if proxy_review_serializer.is_valid():
+
+      try:
+        reveiwing_promo_account = models.Promo_Account.objects.get(
+          promo_username=proxy_review_serializer.data['promo_username'])
+      except Exception as e:
+        return Response({
+          "message": "invalid",
+          "data": "no promo account corresponding to name: "
+          + proxy_review_serializer['promo_username']
+        })
+
+      for account in models.Promo_Account.objects.all():
+        if account.proxy == proxy_review_serializer.data['proxy']:
+          return Response({"message": "proxy already in use",
+          "data": "proxy being used by promo: " + account.promo_username})
+      reveiwing_promo_account.proxy = proxy_review_serializer.data['proxy']
+      reveiwing_promo_account.under_review = False
+      reveiwing_promo_account.save()
+      return Response({"message": "reviewed and updated proxy", "data": proxy_review_serializer})
+    else:
+      return Response({"message": "invalid", "data": proxy_review_serializer.data})
