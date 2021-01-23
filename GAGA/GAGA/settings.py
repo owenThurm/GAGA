@@ -79,7 +79,7 @@ WSGI_APPLICATION = 'GAGA.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'dbapp',
+        'NAME': 'gagadb',
         'USER': 'owenthurm',
         'PASSWORD': 'MagicJohnson32!',
 	'HOST': 'ls-a383f8c5437ef725f1fef69aae36ca4e3dcf36c9.cpq49b2dpiw0.us-east-1.rds.amazonaws.com',
