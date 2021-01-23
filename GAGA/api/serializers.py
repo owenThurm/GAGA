@@ -6,14 +6,15 @@ class UserSerializer(serializers.ModelSerializer):
 
   class Meta:
     model = User
-    fields = ('id', 'username', 'email', 'brand_name', 'password')
+    fields = ('id', 'username', 'email', 'brand_name', 'password', 'location')
 
   def create(self, validated_data):
     user = User.objects.create_user(
       validated_data['email'],
       validated_data['username'],
       validated_data['brand_name'],
-      validated_data['password']
+      validated_data['password'],
+      validated_data['location']
     )
 
     return user
@@ -22,7 +23,7 @@ class PromoSerializer(serializers.ModelSerializer):
   """Serializes a User's Promo Account"""
   class Meta:
     model = Promo_Account
-    fields = ('promo_username', 'promo_password', 'proxy', 'target_account', 'user')
+    fields = ('promo_username', 'promo_password', 'target_account', 'user')
 
 class CommentedAccountsSerializer(serializers.Serializer):
   """Serializes accounts commented on for a given user"""
