@@ -28,7 +28,8 @@ DEBUG = True
 ALLOWED_HOSTS = ['34.226.214.56']
 
 CORS_ORIGIN_WHITELIST = [
-	'http://localhost:3000'
+	'http://localhost:3000',
+	'http://localhost:3000/login'
 ]
 
 
@@ -50,9 +51,9 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
-    'corsheaders.middleware.CorsMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
