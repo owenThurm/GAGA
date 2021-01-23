@@ -27,12 +27,24 @@ class UserAPIView(views.APIView):
         try:
           user = models.User.objects.get(username=user_username)
         except Exception as e:
-          return Response({"message": "No user corresponding to: " + user_username})
+          return Response({"message": "No user corresponding to username: " + user_username})
         user_serializer = UserSerializer(user)
+        return Response({user_serializer.data})
     except Exception as e:
-      print(e)
-      users = self.get_queryset()
-      user_serializer = UserSerializer(users, many=True)
+      pass
+    try:
+        user_email = request.query_params['email']
+        if(user_email != None):
+          try:
+            user = models.User.objects.get(email=user_email)
+          except Exception as e:
+            return Response({"message": "No user corresponding to email: " + user_email})
+          user_serializer = UserSerializer(user)
+          return Response(user_serializer.data)
+    except Exception as e:
+      pass
+    users = self.get_queryset()
+    user_serializer = UserSerializer(users, many=True)
     return Response(user_serializer.data)
 
   def post(self, request, format=None):
@@ -142,7 +154,7 @@ class AuthenticationAPIView(views.APIView):
 
   def post(self, request, format=None):
     '''
-    post username and password in body
+    post email and password in body
     returns true if authenticated, false if not.
     '''
     auth_serializer = AuthenticationSerializer(data=request.data)
