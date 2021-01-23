@@ -29,7 +29,7 @@ class UserAPIView(views.APIView):
         except Exception as e:
           return Response({"message": "No user corresponding to username: " + user_username})
         user_serializer = UserSerializer(user)
-        return Response({user_serializer.data})
+        return Response(user_serializer.data)
     except Exception as e:
       pass
     try:
