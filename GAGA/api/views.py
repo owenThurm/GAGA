@@ -235,7 +235,7 @@ class SetProxyAPIView(views.APIView):
         return Response({
           "message": "invalid",
           "data": "no promo account corresponding to name: "
-          + proxy_review_serializer['promo_username']
+          + proxy_review_serializer.data['promo_username']
         })
 
       for account in models.Promo_Account.objects.all():
@@ -245,6 +245,6 @@ class SetProxyAPIView(views.APIView):
       reveiwing_promo_account.proxy = proxy_review_serializer.data['proxy']
       reveiwing_promo_account.under_review = False
       reveiwing_promo_account.save()
-      return Response({"message": "reviewed and updated proxy", "data": proxy_review_serializer})
+      return Response({"message": "reviewed and updated proxy", "data": proxy_review_serializer.data})
     else:
       return Response({"message": "invalid", "data": proxy_review_serializer.data})
