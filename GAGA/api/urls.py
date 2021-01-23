@@ -8,5 +8,6 @@ urlpatterns = [
     url('commentedaccounts', views.CommentedAccountsAPIView.as_view()),
     url('authenticate', views.AuthenticationAPIView.as_view()),
     url('deactivate', views.DeactivateAPIView.as_view()),
-    url('activate', views.ActivateAPIView.as_view())
+    url('activate', views.ActivateAPIView.as_view()),
+    url('review', views.SetProxyAPIView.as_view())
 ]
