@@ -1,9 +1,9 @@
 from django.shortcuts import render
 from rest_framework import views
 from rest_framework.response import Response
-from .serializers import UserSerializer, PromoSerializer, AuthenticationSerializer
+from .serializers import UserSerializer, PostPromoSerializer, AuthenticationSerializer
 from .serializers import CommentedAccountsSerializer, CommentedAccountSerializer
-from .serializers import ActivationSerializer, AddProxySerializer
+from .serializers import ActivationSerializer, AddProxySerializer, GetPromoSerializer
 from .serializers import GetUserPromoAccountsSerializer
 from . import models
 from django.contrib.auth import authenticate
@@ -12,7 +12,6 @@ from datetime import datetime
 import pytz
 
 # Create your views here.
-
 class UserAPIView(views.APIView):
   """APIView for getting and creating Users"""
 
@@ -61,7 +60,7 @@ class UserAPIView(views.APIView):
 class PromoAPIView(views.APIView):
   """APIView for Promo Accounts"""
 
-  serializer_class = PromoSerializer
+  serializer_class = GetPromoSerializer
 
   def get_queryset(self):
     return models.Promo_Account.objects.all()
@@ -74,11 +73,11 @@ class PromoAPIView(views.APIView):
           promo_account = models.Promo_Account.objects.get(promo_username=promo_username)
         except Exception as e:
           return Response({"message": "No promo account corresponding to username: " + promo_username})
-        promo_serializer = PromoSerializer(promo_account)
+        promo_serializer = GetPromoSerializer(promo_account)
     except Exception as e:
       print(e)
       promo_accounts = self.get_queryset()
-      promo_serializer = PromoSerializer(promo_accounts, many=True)
+      promo_serializer = GetPromoSerializer(promo_accounts, many=True)
     return Response(promo_serializer.data)
 
   def post(self, request, format=None):
@@ -96,7 +95,7 @@ class PromoAPIView(views.APIView):
 
     user_username = request.data['user']
     request.data['user'] = models.User.objects.get(username=user_username).id
-    promo_serializer = PromoSerializer(data=request.data)
+    promo_serializer = PostPromoSerializer(data=request.data)
 
     if promo_serializer.is_valid():
       promo_serializer.save()
