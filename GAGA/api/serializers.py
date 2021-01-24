@@ -49,3 +49,7 @@ class AddProxySerializer(serializers.Serializer):
   """Serializes an add proxy/review request"""
   promo_username = serializers.CharField(max_length=30)
   proxy = serializers.CharField(max_length=120)
+
+class GetUserPromoAccountsSerializer(serializers.Serializer):
+  """Serializes a request to get the promo accounts associated with a given user"""
+  username = serializers.CharField(max_length=30)

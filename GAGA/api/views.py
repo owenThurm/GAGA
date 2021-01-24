@@ -4,6 +4,7 @@ from rest_framework.response import Response
 from .serializers import UserSerializer, PromoSerializer, AuthenticationSerializer
 from .serializers import CommentedAccountsSerializer, CommentedAccountSerializer
 from .serializers import ActivationSerializer, AddProxySerializer
+from .serializers import GetUserPromoAccountsSerializer
 from . import models
 from django.contrib.auth import authenticate
 from .utils import add_to_queue
@@ -260,3 +261,34 @@ class SetProxyAPIView(views.APIView):
       return Response({"message": "reviewed and updated proxy", "data": proxy_review_serializer.data})
     else:
       return Response({"message": "invalid", "data": proxy_review_serializer.data})
+
+class UserPromoAccountsAPIView(views.APIView):
+  '''Used to get a list of the promo accounts associated with a user'''
+
+  class_serializer = GetUserPromoAccountsSerializer
+
+  def post(self, request, format=None):
+    '''
+    Expects the following body format
+    {
+      "username": "genuine apparel growth user username"
+    }
+    '''
+    user_serializer = GetUserPromoAccountsSerializer(data=request.data)
+
+    if user_serializer.is_valid():
+      try:
+        user = models.User.objects.get(username=user_serializer.data['username'])
+      except Exception as e:
+        return Response({"message": "invalid",
+         "data": "No user corresponding to username: " + user_serializer.data['username'] })
+      promo_accounts = []
+
+      for promo_account in user.promo_account_set.all():
+        promo_accounts.append(str(promo_account))
+
+      print('type promo account 1>>>', type(promo_accounts[0]))
+      print('promo accounts>>>', promo_accounts)
+      return Response({"message": "promo accounts", "data": promo_accounts})
+    else:
+      return Response({"message": "invalid", "data": user_serializer.data})
