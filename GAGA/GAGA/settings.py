@@ -29,7 +29,7 @@ DEBUG = True
 # ALLOWED_HOSTS = ['34.226.214.56', 'owenthurm.com']
 ALLOWED_HOSTS=['*']
 
-CORS_ALLOW_HEADERS = default_headers + ('access-control-allow-origin')
+CORS_ALLOW_HEADERS = default_headers + ('access-control-allow-origin', 'access-control-allow-methods',)
 
 # Application definition
 
