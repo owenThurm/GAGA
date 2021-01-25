@@ -25,8 +25,8 @@ SECRET_KEY = '^x-^)by&rcu3i=0dcx&j=cd%13b8l6c(e5&5n+^^l*bnp!6#u='
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['34.226.214.56', 'owenthurm.com']
-
+# ALLOWED_HOSTS = ['34.226.214.56', 'owenthurm.com']
+ALLOWED_HOSTS=['*']
 
 # Application definition
 
@@ -39,18 +39,22 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'api',
-    'django.contrib.postgres'
+    'django.contrib.postgres',
+    'corsheaders'
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+CORS_ORIGIN_ALLOW_ALL = True
 
 ROOT_URLCONF = 'GAGA.urls'
 
