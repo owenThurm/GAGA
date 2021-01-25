@@ -286,8 +286,6 @@ class UserPromoAccountsAPIView(views.APIView):
       for promo_account in user.promo_account_set.all():
         promo_accounts.append(str(promo_account))
 
-      print('type promo account 1>>>', type(promo_accounts[0]))
-      print('promo accounts>>>', promo_accounts)
       return Response({"message": "promo accounts", "data": promo_accounts})
     else:
       return Response({"message": "invalid", "data": user_serializer.data})
