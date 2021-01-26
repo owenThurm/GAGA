@@ -71,7 +71,7 @@ def continue_queue(promo_username, promo_password, promo_target, promo_proxy, sl
   logging.debug('continuing queue')
 
   if sleep_until_tomorrow:
-    queue.enqueue_in(timedelta(hours=16, minutes=randint(50,70)), comment_round, promo_username, promo_password, promo_target, promo_proxy)
+    queue.enqueue_in(timedelta(hours=13, minutes=randint(10, 50)), comment_round, promo_username, promo_password, promo_target, promo_proxy)
 
   else:
-    queue.enqueue_in(timedelta(minutes=randint(50,70)), comment_round, promo_username, promo_password, promo_target, promo_proxy)
+    queue.enqueue_in(timedelta(minutes=randint(80,100)), comment_round, promo_username, promo_password, promo_target, promo_proxy)
