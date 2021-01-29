@@ -36,6 +36,9 @@ def comment_round(promo_username, promo_password, promo_target, promo_proxy):
   promo_account = Promo_Account.objects.get(promo_username=promo_username)
   logging.debug('promo account user: ',  promo_account.user)
 
+  if not promo_account.is_queued:
+    return
+
   accounts_already_commented_on = []
 
   for commented_on_account in promo_account.user.commented_on_account_set.all():
@@ -66,8 +69,7 @@ def comment_round(promo_username, promo_password, promo_target, promo_proxy):
     promo_account.comment_rounds_today = 0
     promo_account.save()
 
-  if promo_account.is_queued:
-    continue_queue(promo_username, promo_password, promo_target, promo_proxy, sleep_until_tomorrow)
+  continue_queue(promo_username, promo_password, promo_target, promo_proxy, sleep_until_tomorrow)
 
 def continue_queue(promo_username, promo_password, promo_target, promo_proxy, sleep_until_tomorrow):
   logging.debug('continuing queue')
