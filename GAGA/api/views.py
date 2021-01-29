@@ -3,8 +3,9 @@ from rest_framework import views
 from rest_framework.response import Response
 from .serializers import UserSerializer, PostPromoSerializer, AuthenticationSerializer
 from .serializers import CommentedAccountsSerializer, CommentedAccountSerializer
-from .serializers import ActivationSerializer, AddProxySerializer, GetPromoSerializer
+from .serializers import PromoUsernameSerializer, AddProxySerializer, GetPromoSerializer
 from .serializers import GetUserPromoAccountsSerializer
+from .services.promo_account_service import PromoAccountService
 from . import models
 from django.contrib.auth import authenticate
 from .utils import add_to_queue
@@ -173,12 +174,12 @@ class AuthenticationAPIView(views.APIView):
 class ActivateAPIView(views.APIView):
   '''An APIView for activating promo accounts'''
 
-  class_serializers = ActivationSerializer
+  class_serializers = PromoUsernameSerializer
 
   def post(self, request, format=None):
     '''expects a promo_username in the body'''
 
-    activation_serializer = ActivationSerializer(data=request.data)
+    activation_serializer = PromoUsernameSerializer(data=request.data)
 
     if activation_serializer.is_valid():
       promo_username = request.data['promo_username']
@@ -204,22 +205,59 @@ class ActivateAPIView(views.APIView):
 class DeactivateAPIView(views.APIView):
   '''An APIView for deactivating promo accounts'''
 
-  class_serializer = ActivationSerializer
+  class_serializer = PromoUsernameSerializer
 
   def post(self, request, format=None):
     '''expects a promo_username in the body'''
-
-    deactivation_serializer = ActivationSerializer(data=request.data)
+    promo_account_service = PromoAccountService()
+    deactivation_serializer = PromoUsernameSerializer(data=request.data)
 
     if deactivation_serializer.is_valid():
       promo_username = request.data['promo_username']
-      promo_account = models.Promo_Account.objects.get(promo_username= promo_username)
-      if promo_account.activated:
-        promo_account.activated = False
-        promo_account.save()
+      try:
+        promo_account_service.deactivate_promo_account(promo_username)
+      except Exception as e:
+        return Response({"message": "no promo corresponding to promo username", "data": promo_username})
+
       return Response({"message": "deactivated", "data": deactivation_serializer.data})
     else:
       return Response({"message": "invalid", "data": deactivation_serializer.data})
+
+class DeactivateAllAPIView(views.APIView):
+  '''Used to deactivate all promo accounts'''
+
+  def post(self, request, format=None):
+    '''expects no body'''
+    promo_account_service = PromoAccountService()
+    promo_account_service.deactivate_all_promo_accounts()
+    return Response({"message": "Deactivated all promo accounts"})
+
+class DequeuePromoAccountAPIView(views.APIView):
+  '''Take a promo account out of the commenting queue'''
+
+  def post(self, request, format=None):
+    '''
+        expects a promo_username in the body
+
+        {
+          "promo_username": "genuineaesthetic"
+        }
+    '''
+
+    promo_account_service = PromoAccountService()
+
+    dequeue_serializer = PromoUsernameSerializer(data=request.data)
+
+    if dequeue_serializer.is_valid():
+
+      dequeued_promo_username = request.data.get('promo_username')
+      promo_account_service.dequeue_promo_account(dequeued_promo_username)
+
+      return Response({"message": "Dequeued account", "data": dequeued_promo_username})
+
+    else:
+      return Response({"message": "invalid", "data": dequeue_serializer.data})
+
 
 class SetProxyAPIView(views.APIView):
   '''Sets the Proxy for an account'''

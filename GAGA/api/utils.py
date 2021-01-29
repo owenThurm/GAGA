@@ -4,6 +4,7 @@ import django
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'GAGA.settings')
 django.setup()
 
+from .services.promo_account_service import PromoAccountService
 from redis import Redis
 from datetime import datetime, timedelta
 import pytz
@@ -58,18 +59,18 @@ def comment_round(promo_username, promo_password, promo_target, promo_proxy):
 
   promo_account.comment_rounds_today += 1
   promo_account.save()
+  logging.debug('comment rounds today: ', promo_account.comment_rounds_today)
   sleep_until_tomorrow = False
   if promo_account.comment_rounds_today >= 8:
     sleep_until_tomorrow = True
     promo_account.comment_rounds_today = 0
     promo_account.save()
 
-
-  continue_queue(promo_username, promo_password, promo_target, promo_proxy, sleep_until_tomorrow)
+  if promo_account.is_queued:
+    continue_queue(promo_username, promo_password, promo_target, promo_proxy, sleep_until_tomorrow)
 
 def continue_queue(promo_username, promo_password, promo_target, promo_proxy, sleep_until_tomorrow):
   logging.debug('continuing queue')
-
   if sleep_until_tomorrow:
     queue.enqueue_in(timedelta(hours=13, minutes=randint(10, 50)), comment_round, promo_username, promo_password, promo_target, promo_proxy)
 
