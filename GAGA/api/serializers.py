@@ -60,3 +60,11 @@ class AddProxySerializer(serializers.Serializer):
 class GetUserPromoAccountsSerializer(serializers.Serializer):
   """Serializes a request to get the promo accounts associated with a given user"""
   username = serializers.CharField(max_length=30)
+
+class ResetPasswordSerializer(serializers.Serializer):
+  """
+    Serializes a growth automation user username
+    and a new growth automation user password
+  """
+  username = serializers.CharField(max_length=30)
+  new_password = serializers.CharField(max_length=30)

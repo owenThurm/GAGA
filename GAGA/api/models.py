@@ -30,6 +30,12 @@ class UserManager(BaseUserManager):
     user.save(using=self._db)
     return user
 
+  def set_password(self, username, password):
+    user = User.objects.get(username=username)
+    user.set_password(password)
+    user.save()
+    return user
+
 
 class User(AbstractBaseUser):
   username = models.CharField(max_length=30, unique=True)

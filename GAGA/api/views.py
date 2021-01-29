@@ -4,7 +4,7 @@ from rest_framework.response import Response
 from .serializers import UserSerializer, PostPromoSerializer, AuthenticationSerializer
 from .serializers import CommentedAccountsSerializer, CommentedAccountSerializer
 from .serializers import PromoUsernameSerializer, AddProxySerializer, GetPromoSerializer
-from .serializers import GetUserPromoAccountsSerializer
+from .serializers import GetUserPromoAccountsSerializer, ResetPasswordSerializer
 from .services.promo_account_service import PromoAccountService
 from . import models
 from django.contrib.auth import authenticate
@@ -327,3 +327,34 @@ class UserPromoAccountsAPIView(views.APIView):
       return Response({"message": "promo accounts", "data": promo_accounts})
     else:
       return Response({"message": "invalid", "data": user_serializer.data})
+
+class ResetPasswordAPIView(views.APIView):
+  '''Used to reset the password for a growth automation user'''
+
+  class_serializer = ResetPasswordSerializer
+
+  def post(self, request, format=None):
+    '''
+    Expects the following body format
+
+    {
+      "username": "owenthurm",
+      "new_password": "password123"
+    }
+    '''
+
+    reset_password_serializer = ResetPasswordSerializer(data=request.data)
+
+    if reset_password_serializer.is_valid():
+      user_manager = models.UserManager()
+      user_username = request.data['username']
+      new_password = request.data['new_password']
+      try:
+        user_manager.set_password(user_username, new_password)
+      except Exception as e:
+        print(e)
+        return Response({"message": "Issue changing password"})
+      return Response({"message": "password updated", "data": user_username})
+    else:
+      return Response({"message": "invalid", "data": reset_password_serializer.data})
+
