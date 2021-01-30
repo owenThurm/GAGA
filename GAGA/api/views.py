@@ -65,14 +65,14 @@ class PromoAPIView(views.APIView):
   serializer_class = GetPromoSerializer
 
   def get_queryset(self):
-    return models.PromoAccount.objects.all()
+    return models.Promo_Account.objects.all()
 
   def get(self, request, format=None):
     try:
       promo_username = request.query_params['username']
       if(promo_username != None):
         try:
-          promo_account = models.PromoAccount.objects.get(promo_username=promo_username)
+          promo_account = models.Promo_Account.objects.get(promo_username=promo_username)
         except Exception as e:
           return Response({"message": "No promo account corresponding to username: " + promo_username})
         promo_serializer = GetPromoSerializer(promo_account)
@@ -157,7 +157,7 @@ class CommentedAccountsAPIView(views.APIView):
 
 
     if commented_accounts_serializer.is_valid():
-      promo_account = models.PromoAccount.objects.get(promo_username=request.data['promo_username'])
+      promo_account = models.Promo_Account.objects.get(promo_username=request.data['promo_username'])
       user = promo_account.user
       for account in request.data['commented_on_accounts']:
         commented_on_account_data = {
@@ -213,7 +213,7 @@ class ActivateAPIView(views.APIView):
 
     if activation_serializer.is_valid():
       promo_username = request.data['promo_username']
-      promo_account = models.PromoAccount.objects.get(promo_username= promo_username)
+      promo_account = models.Promo_Account.objects.get(promo_username= promo_username)
       if not promo_account.under_review:
         if not promo_account.is_queued:
           print(f'adding {promo_username} to the queue')
@@ -306,7 +306,7 @@ class SetProxyAPIView(views.APIView):
     if proxy_review_serializer.is_valid():
 
       try:
-        reveiwing_promo_account = models.PromoAccount.objects.get(
+        reveiwing_promo_account = models.Promo_Account.objects.get(
           promo_username=proxy_review_serializer.data['promo_username'])
       except Exception as e:
         return Response({
@@ -315,7 +315,7 @@ class SetProxyAPIView(views.APIView):
           + proxy_review_serializer.data['promo_username']
         })
 
-      for account in models.PromoAccount.objects.all():
+      for account in models.Promo_Account.objects.all():
         if account.proxy == proxy_review_serializer.data['proxy']:
           return Response({"message": "proxy already in use",
           "data": "proxy being used by promo: " + account.promo_username})

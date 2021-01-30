@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import User, PromoAccount, CommentedOnAccount
+from .models import User, Promo_Account, Commented_On_Account
 
 class UserSerializer(serializers.ModelSerializer):
   """Serializes a Genuine Apparel User"""
@@ -22,13 +22,13 @@ class UserSerializer(serializers.ModelSerializer):
 class PostPromoSerializer(serializers.ModelSerializer):
   """Serializes a User's Promo Account"""
   class Meta:
-    model = PromoAccount
+    model = Promo_Account
     fields = ('promo_username', 'promo_password', 'target_account', 'user')
 
 class GetPromoSerializer(serializers.ModelSerializer):
   """Serializes a User's Promo Account"""
   class Meta:
-    model = PromoAccount
+    model = Promo_Account
     fields = ('promo_username', 'promo_password', 'target_account',
      'user', 'activated', 'under_review', 'comment_rounds_today', 'is_queued')
 
@@ -40,7 +40,7 @@ class CommentedAccountsSerializer(serializers.Serializer):
 class CommentedAccountSerializer(serializers.ModelSerializer):
   """Serializes a commented on account"""
   class Meta:
-    model = CommentedOnAccount
+    model = Commented_On_Account
     fields = ('commented_on_account_username', 'user')
 
 class AuthenticationSerializer(serializers.Serializer):

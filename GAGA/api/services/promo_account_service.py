@@ -1,12 +1,12 @@
-from ..models import PromoAccount, User
+from ..models import Promo_Account, User
 
 class PromoAccountService:
 
   def _get_promo_account(self, promo_username):
-    return PromoAccount.objects.get(promo_username=promo_username)
+    return Promo_Account.objects.get(promo_username=promo_username)
 
   def get_all_promo_accounts(self):
-    return PromoAccount.objects.all()
+    return Promo_Account.objects.all()
 
   def activate_promo_account(self, promo_username):
     promo_account = self._get_promo_account(promo_username)
@@ -58,7 +58,7 @@ class PromoAccountService:
 
   def create_promo_account(self, promo_username, promo_password, promo_target, promo_owner_username):
     promo_owner = self._get_user_from_username(promo_owner_username)
-    promo_account = PromoAccount(promo_username=promo_username, promo_password=promo_password,
+    promo_account = Promo_Account(promo_username=promo_username, promo_password=promo_password,
                                  target_account=promo_target, user=promo_owner)
     promo_account.save()
     return promo_account

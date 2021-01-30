@@ -64,7 +64,7 @@ class User(AbstractBaseUser):
   def has_module_perms(self, app_label):
     return True
 
-class PromoAccount(models.Model):
+class Promo_Account(models.Model):
   promo_username = models.CharField(max_length=30, unique=True)
   promo_password = models.CharField(max_length=20)
   activated = models.BooleanField(default=False)
@@ -78,7 +78,7 @@ class PromoAccount(models.Model):
   def __str__(self):
     return self.promo_username
 
-class CommentedOnAccount(models.Model):
+class Commented_On_Account(models.Model):
   commented_on_account_username = models.CharField(max_length=30)
   user = models.ForeignKey(User, on_delete=models.CASCADE)
 
