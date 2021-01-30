@@ -13,8 +13,8 @@ from rq import Queue
 from random import randint
 import requests
 from .models import User
-from .models import Promo_Account
-from .models import Commented_On_Account
+from .models import PromoAccount
+from .models import CommentedOnAccount
 import logging
 
 LAMBDA_URL = 'https://7r2oqaxnxb.execute-api.us-east-1.amazonaws.com/default/InstaBot'
@@ -33,7 +33,7 @@ def comment_round(promo_username, promo_password, promo_target, promo_proxy):
   logging.debug(f'''Comment round for {promo_username} with password: {promo_password},
   targeting: {promo_target}, with proxy: {promo_proxy}''')
 
-  promo_account = Promo_Account.objects.get(promo_username=promo_username)
+  promo_account = PromoAccount.objects.get(promo_username=promo_username)
   logging.debug('promo account user: ',  promo_account.user)
 
   if not promo_account.is_queued:
