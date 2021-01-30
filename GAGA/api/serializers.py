@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import User, Promo_Account, Commented_On_Account
+from .models import User, PromoAccount, CommentedOnAccount
 
 class UserSerializer(serializers.ModelSerializer):
   """Serializes a Genuine Apparel User"""
@@ -22,13 +22,13 @@ class UserSerializer(serializers.ModelSerializer):
 class PostPromoSerializer(serializers.ModelSerializer):
   """Serializes a User's Promo Account"""
   class Meta:
-    model = Promo_Account
+    model = PromoAccount
     fields = ('promo_username', 'promo_password', 'target_account', 'user')
 
 class GetPromoSerializer(serializers.ModelSerializer):
   """Serializes a User's Promo Account"""
   class Meta:
-    model = Promo_Account
+    model = PromoAccount
     fields = ('promo_username', 'promo_password', 'target_account',
      'user', 'activated', 'under_review', 'comment_rounds_today', 'is_queued')
 
@@ -40,7 +40,7 @@ class CommentedAccountsSerializer(serializers.Serializer):
 class CommentedAccountSerializer(serializers.ModelSerializer):
   """Serializes a commented on account"""
   class Meta:
-    model = Commented_On_Account
+    model = CommentedOnAccount
     fields = ('commented_on_account_username', 'user')
 
 class AuthenticationSerializer(serializers.Serializer):
@@ -68,3 +68,10 @@ class ResetPasswordSerializer(serializers.Serializer):
   """
   username = serializers.CharField(max_length=30)
   new_password = serializers.CharField(max_length=30)
+
+class UpdatePromoSerializer(serializers.Serializer):
+  """Serializes a request to update a promo account"""
+  old_promo_username = serializers.CharField(max_length=30)
+  new_promo_username = serializers.CharField(max_length=30)
+  new_promo_password = serializers.CharField(max_length=20)
+  new_promo_target = serializers.CharField(max_length=30)
