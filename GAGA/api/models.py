@@ -49,6 +49,7 @@ class User(AbstractBaseUser):
   is_active = models.BooleanField(default=True)
   brand_name = models.CharField(max_length=30)
   location = models.CharField(max_length=30)
+  using_custom_comments = models.BooleanField(default=False)
 
   USERNAME_FIELD = "email"
   REQUIRED_FIELDS = ["username", "brand_name", "password", "location"]
@@ -84,3 +85,7 @@ class Commented_On_Account(models.Model):
 
   def __str__(self):
     return self.commented_on_account_username
+
+class CustomComment(models.Model):
+  comment_text = models.CharField(max_length=100)
+  user = models.ForeignKey(User, on_delete=models.CASCADE)

@@ -1,12 +1,12 @@
 from rest_framework import serializers
-from .models import User, Promo_Account, Commented_On_Account
+from .models import User, Promo_Account, Commented_On_Account, CustomComment
 
 class UserSerializer(serializers.ModelSerializer):
   """Serializes a Genuine Apparel User"""
 
   class Meta:
     model = User
-    fields = ('id', 'username', 'email', 'brand_name', 'password', 'location')
+    fields = ('id', 'username', 'email', 'brand_name', 'password', 'location', 'using_custom_comments')
 
   def create(self, validated_data):
     user = User.objects.create_user(
@@ -75,3 +75,31 @@ class UpdatePromoSerializer(serializers.Serializer):
   new_promo_username = serializers.CharField(max_length=30)
   new_promo_password = serializers.CharField(max_length=20)
   new_promo_target = serializers.CharField(max_length=30)
+
+class SetCommentPoolSerializer(serializers.Serializer):
+  """Serializes a request to update the comment pool and account is using"""
+  using_custom_comments = serializers.BooleanField()
+  user_username = serializers.CharField(max_length=30)
+
+class AddCustomCommentsSerializer(serializers.Serializer):
+  """Serializes a request to add custom comments to the custom comment pool"""
+  user_username = serializers.CharField(max_length=30)
+  new_custom_comments = serializers.ListSerializer(child=serializers.CharField(max_length=100))
+
+class DeleteCustomCommentSerializer(serializers.Serializer):
+  """Serializes a request to delete a custom comment"""
+  user_username = serializers.CharField(max_length=30)
+  custom_comment_text = serializers.CharField(max_length=100)
+
+class UpdateCustomCommentSerializer(serializers.Serializer):
+  """Serializes a request to update a custom comment"""
+  user_username = serializers.CharField(max_length=30)
+  old_custom_comment_text = serializers.CharField(max_length=100)
+  new_custom_comment_text = serializers.CharField(max_length=100)
+
+class GetCustomCommentSerializer(serializers.ModelSerializer):
+  """Serializes a response to get a custom comment"""
+
+  class Meta:
+    model = CustomComment
+    fields = ('id', 'comment_text')

@@ -5,6 +5,7 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'GAGA.settings')
 django.setup()
 
 from .services.promo_account_service import PromoAccountService
+from .services.user_service import UserService
 from redis import Redis
 from datetime import datetime, timedelta
 import pytz
@@ -23,6 +24,8 @@ logging.basicConfig(filename='/logs/workerlogs', level=logging.DEBUG)
 
 redis_server = Redis()
 queue = Queue(connection=redis_server)
+user_service = UserService()
+promo_account_service = PromoAccountService()
 
 def add_to_queue(promo_username, promo_password, promo_target, promo_proxy):
   logging.debug(f'adding {promo_username} to queue at ')
@@ -39,6 +42,8 @@ def comment_round(promo_username, promo_password, promo_target, promo_proxy):
   if not promo_account.is_queued:
     return
 
+  user_username = promo_account_service.get_promo_account_owner_username(promo_username)
+
   accounts_already_commented_on = []
 
   for commented_on_account in promo_account.user.commented_on_account_set.all():
@@ -47,17 +52,23 @@ def comment_round(promo_username, promo_password, promo_target, promo_proxy):
   comment_rounds_today = promo_account.comment_rounds_today
   logging.debug('Comment Rounds Today: ', comment_rounds_today)
 
+
+  account_custom_comment_pool = []
+  if user_service.user_is_using_custom_comment_pool(user_username):
+    account_custom_comment_pool = user_service.get_user_custom_comments_text(user_username)
+
   #to run at = response from aws -> get the finish time from the last comment
   promo_attributes = {
     'promo_username': promo_username,
     'promo_password': promo_password,
     'target_account': promo_target,
     'proxy': promo_proxy,
-    'accounts_already_commented_on': accounts_already_commented_on
+    'accounts_already_commented_on': accounts_already_commented_on,
+    'custom_comments': account_custom_comment_pool
   }
 
   if promo_account.activated:
-    logging.debug('comment round ran>>>')
+    logging.debug('comment round ran>>> ' + str(promo_attributes))
     requests.post(LAMBDA_URL, json=promo_attributes)
 
   promo_account.comment_rounds_today += 1

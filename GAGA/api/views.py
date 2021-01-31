@@ -1,24 +1,23 @@
 from django.shortcuts import render
 from rest_framework import views
 from rest_framework.response import Response
-from .serializers import UserSerializer, PostPromoSerializer, AuthenticationSerializer
-from .serializers import CommentedAccountsSerializer, CommentedAccountSerializer
-from .serializers import PromoUsernameSerializer, AddProxySerializer, GetPromoSerializer
-from .serializers import GetUserPromoAccountsSerializer, ResetPasswordSerializer, UpdatePromoSerializer
 from .services.promo_account_service import PromoAccountService
+from .services.user_service import UserService
 from . import models
 from django.contrib.auth import authenticate
+from . import serializers
 from .utils import add_to_queue
 from datetime import datetime
 import pytz
 
 promo_account_service = PromoAccountService()
+user_service = UserService()
 
 # Create your views here.
 class UserAPIView(views.APIView):
   """APIView for getting and creating Users"""
 
-  serializer_class = UserSerializer
+  serializer_class = serializers.UserSerializer
 
   def get_queryset(self):
     return models.User.objects.all()
@@ -31,7 +30,7 @@ class UserAPIView(views.APIView):
           user = models.User.objects.get(username=user_username)
         except Exception as e:
           return Response({"message": "No user corresponding to username: " + user_username})
-        user_serializer = UserSerializer(user)
+        user_serializer = serializers.UserSerializer(user)
         return Response(user_serializer.data)
     except Exception as e:
       pass
@@ -42,17 +41,17 @@ class UserAPIView(views.APIView):
             user = models.User.objects.get(email=user_email)
           except Exception as e:
             return Response({"message": "No user corresponding to email: " + user_email})
-          user_serializer = UserSerializer(user)
+          user_serializer = serializers.UserSerializer(user)
           return Response(user_serializer.data)
     except Exception as e:
       pass
     users = self.get_queryset()
-    user_serializer = UserSerializer(users, many=True)
+    user_serializer = serializers.UserSerializer(users, many=True)
     return Response(user_serializer.data)
 
   def post(self, request, format=None):
     print('called post, request: ', request.data)
-    user_serializer = UserSerializer(data=request.data)
+    user_serializer = serializers.UserSerializer(data=request.data)
 
     if user_serializer.is_valid():
       user_serializer.save()
@@ -62,7 +61,7 @@ class UserAPIView(views.APIView):
 
 class PromoAPIView(views.APIView):
   """APIView for Promo Accounts"""
-  serializer_class = GetPromoSerializer
+  serializer_class = serializers.GetPromoSerializer
 
   def get_queryset(self):
     return models.Promo_Account.objects.all()
@@ -75,11 +74,11 @@ class PromoAPIView(views.APIView):
           promo_account = models.Promo_Account.objects.get(promo_username=promo_username)
         except Exception as e:
           return Response({"message": "No promo account corresponding to username: " + promo_username})
-        promo_serializer = GetPromoSerializer(promo_account)
+        promo_serializer = serializers.GetPromoSerializer(promo_account)
     except Exception as e:
       print(e)
       promo_accounts = self.get_queryset()
-      promo_serializer = GetPromoSerializer(promo_accounts, many=True)
+      promo_serializer = serializers.GetPromoSerializer(promo_accounts, many=True)
     return Response(promo_serializer.data)
 
   def post(self, request, format=None):
@@ -97,7 +96,7 @@ class PromoAPIView(views.APIView):
 
     user_username = request.data['user']
     request.data['user'] = models.User.objects.get(username=user_username).id
-    promo_serializer = PostPromoSerializer(data=request.data)
+    promo_serializer = serializers.PostPromoSerializer(data=request.data)
 
     if promo_serializer.is_valid():
       promo_serializer.save()
@@ -119,7 +118,7 @@ class PromoAPIView(views.APIView):
       }
     '''
 
-    update_promo_serializer = UpdatePromoSerializer(data=request.data)
+    update_promo_serializer = serializers.UpdatePromoSerializer(data=request.data)
 
     if update_promo_serializer.is_valid():
       old_promo_username = request.data['old_promo_username']
@@ -137,7 +136,7 @@ class PromoAPIView(views.APIView):
 class CommentedAccountsAPIView(views.APIView):
   '''APIView for adding and accessing commented on accounts for each user'''
 
-  serializer_class = CommentedAccountsSerializer
+  serializer_class = serializers.CommentedAccountsSerializer
 
   def post(self, request, format=None):
     '''Takes a list of strings, where each string is the username of an
@@ -153,7 +152,7 @@ class CommentedAccountsAPIView(views.APIView):
     }'''
     print(request.data)
 
-    commented_accounts_serializer = CommentedAccountsSerializer(data=request.data)
+    commented_accounts_serializer = serializers.CommentedAccountsSerializer(data=request.data)
 
 
     if commented_accounts_serializer.is_valid():
@@ -164,7 +163,7 @@ class CommentedAccountsAPIView(views.APIView):
           'commented_on_account_username': account,
           'user': user.id
         }
-        commented_on_account_serializer = CommentedAccountSerializer(data=commented_on_account_data)
+        commented_on_account_serializer = serializers.CommentedAccountSerializer(data=commented_on_account_data)
         if commented_on_account_serializer.is_valid():
           commented_on_account_serializer.save()
           print('saved', commented_on_account_data)
@@ -181,14 +180,14 @@ class CommentedAccountsAPIView(views.APIView):
 class AuthenticationAPIView(views.APIView):
   '''An APIView for authenticating users'''
 
-  serializer_class = AuthenticationSerializer
+  serializer_class = serializers.AuthenticationSerializer
 
   def post(self, request, format=None):
     '''
     post email and password in body
     returns true if authenticated, false if not.
     '''
-    auth_serializer = AuthenticationSerializer(data=request.data)
+    auth_serializer = serializers.AuthenticationSerializer(data=request.data)
 
     if auth_serializer.is_valid():
       # authenticate
@@ -204,12 +203,12 @@ class AuthenticationAPIView(views.APIView):
 class ActivateAPIView(views.APIView):
   '''An APIView for activating promo accounts'''
 
-  class_serializers = PromoUsernameSerializer
+  class_serializers = serializers.PromoUsernameSerializer
 
   def post(self, request, format=None):
     '''expects a promo_username in the body'''
 
-    activation_serializer = PromoUsernameSerializer(data=request.data)
+    activation_serializer = serializers.PromoUsernameSerializer(data=request.data)
 
     if activation_serializer.is_valid():
       promo_username = request.data['promo_username']
@@ -235,11 +234,11 @@ class ActivateAPIView(views.APIView):
 class DeactivateAPIView(views.APIView):
   '''An APIView for deactivating promo accounts'''
 
-  class_serializer = PromoUsernameSerializer
+  class_serializer = serializers.PromoUsernameSerializer
 
   def post(self, request, format=None):
     '''expects a promo_username in the body'''
-    deactivation_serializer = PromoUsernameSerializer(data=request.data)
+    deactivation_serializer = serializers.PromoUsernameSerializer(data=request.data)
 
     if deactivation_serializer.is_valid():
       promo_username = request.data['promo_username']
@@ -273,7 +272,7 @@ class DequeuePromoAccountAPIView(views.APIView):
     '''
 
 
-    dequeue_serializer = PromoUsernameSerializer(data=request.data)
+    dequeue_serializer = serializers.PromoUsernameSerializer(data=request.data)
 
     if dequeue_serializer.is_valid():
 
@@ -289,7 +288,7 @@ class DequeuePromoAccountAPIView(views.APIView):
 class SetProxyAPIView(views.APIView):
   '''Sets the Proxy for an account'''
 
-  class_serializer = AddProxySerializer
+  class_serializer = serializers.AddProxySerializer
 
   def post(self, request, format=None):
     '''
@@ -301,7 +300,7 @@ class SetProxyAPIView(views.APIView):
     }
     '''
 
-    proxy_review_serializer = AddProxySerializer(data=request.data)
+    proxy_review_serializer = serializers.AddProxySerializer(data=request.data)
 
     if proxy_review_serializer.is_valid():
 
@@ -329,7 +328,7 @@ class SetProxyAPIView(views.APIView):
 class UserPromoAccountsAPIView(views.APIView):
   '''Used to get a list of the promo accounts associated with a user'''
 
-  class_serializer = GetUserPromoAccountsSerializer
+  class_serializer = serializers.GetUserPromoAccountsSerializer
 
   def post(self, request, format=None):
     '''
@@ -338,7 +337,7 @@ class UserPromoAccountsAPIView(views.APIView):
       "username": "genuine apparel growth user username"
     }
     '''
-    user_serializer = GetUserPromoAccountsSerializer(data=request.data)
+    user_serializer = serializers.GetUserPromoAccountsSerializer(data=request.data)
 
     if user_serializer.is_valid():
       try:
@@ -358,7 +357,7 @@ class UserPromoAccountsAPIView(views.APIView):
 class ResetPasswordAPIView(views.APIView):
   '''Used to reset the password for a growth automation user'''
 
-  class_serializer = ResetPasswordSerializer
+  class_serializer = serializers.ResetPasswordSerializer
 
   def post(self, request, format=None):
     '''
@@ -370,7 +369,7 @@ class ResetPasswordAPIView(views.APIView):
     }
     '''
 
-    reset_password_serializer = ResetPasswordSerializer(data=request.data)
+    reset_password_serializer = serializers.ResetPasswordSerializer(data=request.data)
 
     if reset_password_serializer.is_valid():
       user_manager = models.UserManager()
@@ -384,3 +383,160 @@ class ResetPasswordAPIView(views.APIView):
       return Response({"message": "password updated", "data": user_username})
     else:
       return Response({"message": "invalid", "data": reset_password_serializer.data})
+
+class SetCommentPoolAPIView(views.APIView):
+  '''
+    Used to set the comment pool for an account
+    -- either custom pool or default pool
+  '''
+
+  serializer_class = serializers.SetCommentPoolSerializer
+
+  def post(self, request, format=None):
+    '''
+      expects the following body:
+
+      {
+        "user_username": "upcomingstreetwearfashion",
+        "using_custom_comments": false
+      }
+    '''
+
+    update_comment_pool_serializer = serializers.SetCommentPoolSerializer(data=request.data)
+
+    if update_comment_pool_serializer.is_valid():
+      user_username = request.data['user_username']
+      using_custom_comments = request.data['using_custom_comments']
+      if not user_service.user_is_custom_comment_eligible(user_username) and using_custom_comments:
+        return Response({"message": "user is not eligible for custom comments",
+                         "data": update_comment_pool_serializer.data})
+      try:
+        user_service.update_user_comment_pool_setting(user_username, using_custom_comments)
+      except Exception as e:
+        return Response({"message": "Couldn't find a user corresponding to username",
+        "data": update_comment_pool_serializer.data})
+      return Response({"message": "updated", "data": update_comment_pool_serializer.data})
+    else:
+      return Response({"message": "invalid", "data": update_comment_pool_serializer.data})
+
+class CustomCommentPoolAPIView(views.APIView):
+  '''
+    Used to add a list of custom comments to a
+    user's custom comment pool
+  '''
+
+  def get_queryset(self):
+    return models.CustomComment.objects.all()
+
+  def get(self, request, format=None):
+    '''
+      Used to get a single user's custom comment pool
+      if a user's username is passed in the query params
+      and used to get all custom comments if not.
+
+      expects ?user=owenthurm
+
+      in query params
+    '''
+    try:
+      user_username = request.query_params['user']
+      if user_username != None:
+        try:
+          custom_comments = user_service.get_user_custom_comment_pool(user_username)
+          custom_comments_serializer = serializers.GetCustomCommentSerializer(custom_comments, many=True)
+
+          return Response({"message": user_username + "'s comment pool",
+                            "data": custom_comments_serializer.data})
+        except Exception as e:
+          print(e)
+          return Response({"message": "could not find comment pool corresponding to user",
+                           "data": user_username})
+    except Exception as e:
+      custom_comments = self.get_queryset()
+      custom_comments_serializer = serializers.GetCustomCommentSerializer(custom_comments, many=True)
+      return Response(custom_comments_serializer.data)
+
+
+  class_serializer = serializers.AddCustomCommentsSerializer
+
+  def post(self, request, format=None):
+    '''
+      expects the following body:
+
+      {
+        "user_username": "owenthurm"
+        "new_custom_comments": ["hey what's good, shoot me a dm when you can",
+                                "what's up, dm me whenever you can", ...]
+      }
+    '''
+
+    new_comments_serializer = serializers.AddCustomCommentsSerializer(data=request.data)
+
+    if new_comments_serializer.is_valid():
+      user_username = request.data['user_username']
+      new_custom_comments = request.data['new_custom_comments']
+      comments_are_unique = user_service.comments_are_unique(user_username, new_custom_comments)
+      if not comments_are_unique:
+        return Response({"message": "Comments are not unique", "data": new_comments_serializer.data})
+      try:
+        user_service.add_to_user_custom_comment_pool(user_username, new_custom_comments)
+      except Exception as e:
+        print(e)
+        return Response({"message": "Couldn't find a user corresponding to username",
+                         "data": new_comments_serializer.data})
+      return Response({"message": "updated", "data": new_comments_serializer.data})
+    else:
+      return Response({"message": "invalid", "data": new_comments_serializer.data})
+
+  def delete(self, request, format=None):
+    '''
+      expects the following body:
+
+      {
+        "user_username": "owenthurm",
+        "custom_comment_text": "Hey what's up! Shoot us a dm when you can!"
+      }
+    '''
+
+    delete_custom_comment_serializer = serializers.DeleteCustomCommentSerializer(data=request.data)
+
+    if delete_custom_comment_serializer.is_valid():
+      user_username = request.data['user_username']
+      custom_comment_text = request.data['custom_comment_text']
+      try:
+        user_service.delete_custom_comment(user_username, custom_comment_text)
+        if not user_service.user_is_custom_comment_eligible(user_username):
+          user_service.update_user_comment_pool_setting(user_username, False)
+      except Exception as e:
+        return Response({"message": "Couldn't locate custom comment with that text for given user",
+                         "data": delete_custom_comment_serializer.data})
+      return Response({"message": "deleted", "data": delete_custom_comment_serializer.data})
+    else:
+      return Response({"message": "invalid", "data": delete_custom_comment_serializer.data})
+
+  def put(self, request, format=None):
+    '''
+      expects the following body format:
+
+      {
+        "user_username": "owenthurm",
+        "old_custom_comment_text": "",
+        "new_custom_comment_text": ""
+      }
+    '''
+
+    update_custom_comment_serializer = serializers.UpdateCustomCommentSerializer(data=request.data)
+
+    if update_custom_comment_serializer.is_valid():
+      user_username = request.data['user_username']
+      old_custom_comment_text = request.data['old_custom_comment_text']
+      new_custom_comment_text = request.data['new_custom_comment_text']
+      try:
+        user_service.update_custom_comment_text(user_username, old_custom_comment_text,
+                                                          new_custom_comment_text)
+      except Exception as e:
+        return Response({"message": "Couldn't find comment to update from given user",
+                        "data": update_custom_comment_serializer.data})
+      return Response({"message": "updated", "data": update_custom_comment_serializer.data})
+    else:
+      return Response({"message": "invalid", "data": update_custom_comment_serializer.data})

@@ -79,3 +79,4 @@ class PromoAccountService:
       promo_account.is_queued = False
     promo_account.save()
     return promo_account
+
