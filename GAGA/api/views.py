@@ -191,12 +191,18 @@ class AuthenticationAPIView(views.APIView):
 
     if auth_serializer.is_valid():
       # authenticate
-      user = authenticate(email=auth_serializer.data['email'], password=auth_serializer.data['password'])
-      if user is None:
+      user_email = auth_serializer.data['email']
+      user_password = auth_serializer.data['password']
+      user_username = user_service.authenticate_user(user_email, user_password)
+      if user_username is None:
         # did not pass authentication
         return Response({"message": "invalid credentials", "authenticated": False})
       else:
-        return Response({"message": "successfully authenticated", "authenticated": True})
+        return Response({
+          "message": "successfully authenticated",
+          "authenticated": True,
+          "data": user_username,
+        })
     else:
       return Response({"message": "invalid", "data": auth_serializer.data})
 

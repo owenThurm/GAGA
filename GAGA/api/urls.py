@@ -9,11 +9,11 @@ urlpatterns = [
     url('user/resetpassword', views.ResetPasswordAPIView.as_view()),
     url('user/customcomments', views.CustomCommentPoolAPIView.as_view()),
     url('user/setcustomcomments', views.SetCommentPoolAPIView.as_view()),
+    url('user/authenticate', views.AuthenticationAPIView.as_view()),
     url('user', views.UserAPIView.as_view()),
     url('promo', views.PromoAPIView.as_view()),
     url('commentedaccounts', views.CommentedAccountsAPIView.as_view()),
-    url('authenticate', views.AuthenticationAPIView.as_view()),
     url('deactivate', views.DeactivateAPIView.as_view()),
     url('activate', views.ActivateAPIView.as_view()),
-    url('review', views.SetProxyAPIView.as_view())
+    url('review', views.SetProxyAPIView.as_view()),
 ]

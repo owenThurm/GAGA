@@ -1,9 +1,16 @@
 from ..models import User, CustomComment
+from django.contrib.auth import authenticate
 
 class UserService():
 
   def _get_user_by_username(self, user_username):
     return User.objects.get(username=user_username)
+
+  def _get_user_by_email(self, user_email):
+    return User.objects.get(email=user_email)
+
+  def get_user_username_from_email(self, user_email):
+    return self._get_user_by_email(user_email).username
 
   def update_user_comment_pool_setting(self, user_username, using_custom_comments):
     user = self._get_user_by_username(user_username)
@@ -88,3 +95,12 @@ class UserService():
       if self.comment_is_empty(custom_comment_text):
         return True
     return False
+
+  def authenticate_user(self, user_email, user_password):
+    print(user_email)
+    print(user_password)
+    print(authenticate(email=user_email, password=user_password))
+    if authenticate(email=user_email, password=user_password):
+      return self.get_user_username_from_email(user_email)
+    else:
+      return None
