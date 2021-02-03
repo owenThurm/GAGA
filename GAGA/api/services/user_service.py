@@ -79,8 +79,9 @@ class UserService():
     user_custom_comment_pool = self.get_user_custom_comment_pool(user_username)
     user_custom_comment_set = set()
     for custom_comment in user_custom_comment_pool:
-      user_custom_comment_set.add(custom_comment.comment_text)
+      user_custom_comment_set.add(custom_comment.comment_text.replace(" ", ""))
     for new_custom_comment in new_custom_comments:
+      new_custom_comment = new_custom_comment.replace(" ", "")
       if new_custom_comment in user_custom_comment_set:
         return False
       else:
@@ -104,3 +105,16 @@ class UserService():
       return self.get_user_username_from_email(user_email)
     else:
       return None
+
+  def get_duplicate_comment(self, user_username, new_custom_comments):
+    user_custom_comment_pool = self.get_user_custom_comment_pool(user_username)
+    user_custom_comment_set = set()
+    for custom_comment in user_custom_comment_pool:
+      user_custom_comment_set.add(custom_comment.comment_text.replace(" ", ""))
+    for new_custom_comment in new_custom_comments:
+      new_custom_comment = new_custom_comment.replace(" ", "")
+      if new_custom_comment in user_custom_comment_set:
+        return new_custom_comment
+      else:
+        user_custom_comment_set.add(new_custom_comment)
+    return None

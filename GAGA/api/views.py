@@ -483,7 +483,8 @@ class CustomCommentPoolAPIView(views.APIView):
       new_custom_comments = request.data['new_custom_comments']
       comments_are_unique = user_service.comments_are_unique(user_username, new_custom_comments)
       if not comments_are_unique:
-        return Response({"message": "Comments are not unique", "data": new_comments_serializer.data})
+        duplicate_comment_text = user_service.get_duplicate_comment(user_username, new_custom_comments)
+        return Response({"message": "Comments are not unique", "data": duplicate_comment_text})
       try:
         user_service.add_to_user_custom_comment_pool(user_username, new_custom_comments)
       except Exception as e:
