@@ -116,7 +116,10 @@ class PromoAccountService:
     return promo_account
 
   def get_accounts_already_commented_on(self, promo_username):
-    return list(self._get_promo_account_owner(promo_username).commented_on_account_set.all())
+    commented_on_account_list = []
+    for commented_on_account in list(self._get_promo_account_owner(promo_username).commented_on_account_set.all()):
+      commented_on_account_list.push(commented_on_account.commented_on_account_username)
+    return commented_on_account_list
 
   def get_comment_rounds_today(self, promo_username):
     return self._get_promo_account(promo_username).comment_rounds_today
