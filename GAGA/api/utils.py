@@ -27,35 +27,23 @@ queue = Queue(connection=redis_server)
 user_service = UserService()
 promo_account_service = PromoAccountService()
 
-def add_to_queue(promo_username, promo_password, promo_target, promo_proxy):
-  logging.debug(f'adding {promo_username} to queue at ')
-  queue.enqueue_in(timedelta(minutes=0), comment_round, promo_username, promo_password, promo_target, promo_proxy)
+def add_to_queue(promo_username):
+  logging.debug(f'adding {promo_username} to queue at ', datetime.now())
+  queue.enqueue_in(timedelta(minutes=0), comment_round, promo_username)
 
-def comment_round(promo_username, promo_password, promo_target, promo_proxy):
-  logging.debug('called func<<<<<<')
-  logging.debug(f'''Comment round for {promo_username} with password: {promo_password},
-  targeting: {promo_target}, with proxy: {promo_proxy}''')
+def comment_round(promo_username):
 
-  promo_account = Promo_Account.objects.get(promo_username=promo_username)
-  logging.debug('promo account user: ',  promo_account.user)
-
-  if not promo_account.is_queued:
+  if not promo_account_service.promo_is_queued(promo_username):
     return
 
-  user_username = promo_account_service.get_promo_account_owner_username(promo_username)
-
-  accounts_already_commented_on = []
-
-  for commented_on_account in promo_account.user.commented_on_account_set.all():
-    accounts_already_commented_on.append(commented_on_account.commented_on_account_username)
-
-  comment_rounds_today = promo_account.comment_rounds_today
-  logging.debug('Comment Rounds Today: ', comment_rounds_today)
-
-
-  account_custom_comment_pool = []
-  if user_service.user_is_using_custom_comment_pool(user_username):
-    account_custom_comment_pool = user_service.get_user_custom_comments_text(user_username)
+  promo_password = promo_account_service.get_promo_password(promo_username)
+  promo_target = promo_account_service.get_next_target_account_and_rotate(promo_username)
+  promo_proxy = promo_account_service.get_promo_proxy(promo_username)
+  accounts_already_commented_on = promo_account_service.get_accounts_already_commented_on(promo_username)
+  comment_rounds_today = promo_account_service.get_comment_rounds_today(promo_username)
+  promo_owner_username = promo_account_service.get_promo_account_owner_username(promo_username)
+  activated = promo_account_service.promo_account_is_activated(promo_username)
+  account_custom_comment_pool = user_service.get_user_custom_comments_text(promo_owner_username)
 
   #to run at = response from aws -> get the finish time from the last comment
   promo_attributes = {
@@ -67,25 +55,28 @@ def comment_round(promo_username, promo_password, promo_target, promo_proxy):
     'custom_comments': account_custom_comment_pool
   }
 
-  if promo_account.activated:
-    logging.debug('comment round ran>>> ' + str(promo_attributes))
+  logging.debug(f'''Comment round for {promo_username}, targeting {promo_target},
+  with proxy: {promo_proxy}, with custom comments: {account_custom_comment_pool}, 
+  at time: {datetime.now()}''')
+  logging.debug('Comment Rounds Already Today: ', comment_rounds_today)
+
+
+  if activated:
+    logging.debug('###Lambda Called###')
     requests.post(LAMBDA_URL, json=promo_attributes)
 
-  promo_account.comment_rounds_today += 1
-  promo_account.save()
-  logging.debug('comment rounds today: ', promo_account.comment_rounds_today)
+  comment_rounds_today = promo_account_service.increment_comment_rounds_today(promo_username)
   sleep_until_tomorrow = False
-  if promo_account.comment_rounds_today >= 8:
+  if comment_rounds_today >= 10:
     sleep_until_tomorrow = True
-    promo_account.comment_rounds_today = 0
-    promo_account.save()
+    promo_account_service.reset_daily_comment_round_count(promo_username)
 
-  continue_queue(promo_username, promo_password, promo_target, promo_proxy, sleep_until_tomorrow)
+  continue_queue(promo_username, sleep_until_tomorrow)
 
-def continue_queue(promo_username, promo_password, promo_target, promo_proxy, sleep_until_tomorrow):
-  logging.debug('continuing queue')
+def continue_queue(promo_username, sleep_until_tomorrow):
+  logging.debug(f'continuing queue, will sleep until tomorrow: {sleep_until_tomorrow}')
   if sleep_until_tomorrow:
-    queue.enqueue_in(timedelta(hours=13, minutes=randint(10, 50)), comment_round, promo_username, promo_password, promo_target, promo_proxy)
+    queue.enqueue_in(timedelta(hours=10, minutes=randint(10,50)), comment_round, promo_username)
 
   else:
-    queue.enqueue_in(timedelta(minutes=randint(80,100)), comment_round, promo_username, promo_password, promo_target, promo_proxy)
+    queue.enqueue_in(timedelta(minutes=randint(80,100)), comment_round, promo_username)

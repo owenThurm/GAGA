@@ -89,7 +89,7 @@ class PromoAPIView(views.APIView):
     {
       promo_username: "promo account username",
       promo_password: "promo account password",
-      promo_target: "promo target account",
+      promo_targets: ["promo target account1", "target account2", ...],
       user: "Growth Automation user username who owns promo account"
     }
     '''
@@ -222,8 +222,7 @@ class ActivateAPIView(views.APIView):
       if not promo_account.under_review:
         if not promo_account.is_queued:
           print(f'adding {promo_username} to the queue')
-          add_to_queue(promo_username, promo_account.promo_password,
-          promo_account.target_account, promo_account.proxy)
+          add_to_queue(promo_username)
           promo_account.is_queued = True
           if not promo_account.activated:
             promo_account.activated = True

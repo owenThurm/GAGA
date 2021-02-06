@@ -1,4 +1,5 @@
 from django.db import models
+from django.contrib.postgres.fields import ArrayField
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 
 # Growth Automation Models
@@ -70,11 +71,13 @@ class Promo_Account(models.Model):
   promo_password = models.CharField(max_length=20)
   activated = models.BooleanField(default=False)
   proxy = models.CharField(max_length=120, default='0.0.0.0')
-  target_account = models.CharField(max_length=30)
+  target_accounts = ArrayField(models.CharField(max_length=30), size=8)
   user = models.ForeignKey(User, on_delete=models.CASCADE)
   comment_rounds_today = models.IntegerField(default=0)
   is_queued = models.BooleanField(default=False)
   under_review = models.BooleanField(default=True)
+
+  REQUIRED_FIELDS = ["promo_username", "promo_password", "target_accounts", "user"]
 
   def __str__(self):
     return self.promo_username

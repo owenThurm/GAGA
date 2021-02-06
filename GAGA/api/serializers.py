@@ -23,13 +23,13 @@ class PostPromoSerializer(serializers.ModelSerializer):
   """Serializes a User's Promo Account"""
   class Meta:
     model = Promo_Account
-    fields = ('promo_username', 'promo_password', 'target_account', 'user')
+    fields = ('promo_username', 'promo_password', 'target_accounts', 'user')
 
 class GetPromoSerializer(serializers.ModelSerializer):
   """Serializes a User's Promo Account"""
   class Meta:
     model = Promo_Account
-    fields = ('promo_username', 'promo_password', 'target_account',
+    fields = ('promo_username', 'promo_password', 'target_accounts',
      'user', 'activated', 'under_review', 'comment_rounds_today', 'is_queued')
 
 class CommentedAccountsSerializer(serializers.Serializer):
