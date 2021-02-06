@@ -98,14 +98,14 @@ class PromoAccountService:
     promo_account.save()
     return promo_account
 
-  def update_promo_account(self, old_promo_username, new_promo_username, new_promo_password, new_promo_target):
+  def update_promo_account(self, old_promo_username, new_promo_username, new_promo_password, new_promo_targets):
     promo_account = self._get_promo_account(old_promo_username)
     if promo_account.promo_username != new_promo_username:
       promo_account.promo_username = new_promo_username
     if promo_account.promo_password != new_promo_password:
       promo_account.promo_password = new_promo_password
-    if promo_account.target_account != new_promo_target:
-      promo_account.target_account = new_promo_target
+    if promo_account.target_accounts != new_promo_targets:
+      promo_account.target_accounts = new_promo_targets
     if promo_account.activated == True:
       promo_account.activated = False
     if promo_account.under_review == False:

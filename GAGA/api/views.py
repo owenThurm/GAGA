@@ -114,7 +114,7 @@ class PromoAPIView(views.APIView):
         "old_promo_username": "upcomingstreetwearfashion",
         "new_promo_username": "genuineaesthetic",
         "new_promo_password": "password123",
-        "new_promo_target": "riotsociety",
+        "new_promo_targets": "riotsociety",
       }
     '''
 
@@ -124,9 +124,9 @@ class PromoAPIView(views.APIView):
       old_promo_username = request.data['old_promo_username']
       new_promo_username = request.data['new_promo_username']
       new_promo_password = request.data['new_promo_password']
-      new_promo_target = request.data['new_promo_target']
+      new_promo_targets = request.data['new_promo_targets']
       promo_account_service.update_promo_account(old_promo_username, new_promo_username,
-                                                 new_promo_password, new_promo_target)
+                                                 new_promo_password, new_promo_targets)
 
       return Response({"message": "updated", "data": update_promo_serializer.data})
     else:
