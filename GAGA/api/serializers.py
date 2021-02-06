@@ -74,7 +74,7 @@ class UpdatePromoSerializer(serializers.Serializer):
   old_promo_username = serializers.CharField(max_length=30)
   new_promo_username = serializers.CharField(max_length=30)
   new_promo_password = serializers.CharField(max_length=20)
-  new_promo_targets = serializers.CharField(max_length=30)
+  new_promo_targets = serializers.ListSerializer(child=serializers.CharField(max_length=30))
 
 class SetCommentPoolSerializer(serializers.Serializer):
   """Serializes a request to update the comment pool and account is using"""
