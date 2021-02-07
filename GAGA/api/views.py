@@ -154,13 +154,15 @@ class CommentedAccountsAPIView(views.APIView):
 
     commented_accounts_serializer = serializers.CommentedAccountsSerializer(data=request.data)
 
-
     if commented_accounts_serializer.is_valid():
-      promo_account = models.Promo_Account.objects.get(promo_username=request.data['promo_username'])
+      promo_username = commented_accounts_serializer.data['promo_username']
+      promo_account = models.Promo_Account.objects.get(promo_username=promo_username)
       user = promo_account.user
+      commented_on_accounts = request.data['commented_on_accounts']
       for account in request.data['commented_on_accounts']:
         commented_on_account_data = {
           'commented_on_account_username': account,
+          'promo_account': promo_account.id,
           'user': user.id
         }
         commented_on_account_serializer = serializers.CommentedAccountSerializer(data=commented_on_account_data)
@@ -170,8 +172,10 @@ class CommentedAccountsAPIView(views.APIView):
           print(commented_on_account_serializer.data)
         else:
           print('invalid', commented_on_account_data)
-          print(commented_on_account_serializer.data)
+          print(commented_on_account_serializer.data, commented_on_account_serializer.errors)
 
+      # subtract number of comments in the list comming in from promo_account.comments_until_sleep
+      promo_account_service.subtract_comments_from_comments_until_sleep(promo_username, commented_on_accounts)
 
       return Response({"message": "saved", "data": commented_accounts_serializer.data})
     else:

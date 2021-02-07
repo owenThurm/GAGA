@@ -43,7 +43,12 @@ def comment_round(promo_username):
   comment_rounds_today = promo_account_service.get_comment_rounds_today(promo_username)
   promo_owner_username = promo_account_service.get_promo_account_owner_username(promo_username)
   activated = promo_account_service.promo_account_is_activated(promo_username)
-  account_custom_comment_pool = user_service.get_user_custom_comments_text(promo_owner_username)
+  number_of_comments_to_do = promo_account_service.get_promo_comment_level(promo_username)
+
+  if(user_service.user_is_using_custom_comment_pool(promo_owner_username)):
+    account_custom_comment_pool = user_service.get_user_custom_comments_text(promo_owner_username)
+  else:
+    account_custom_comment_pool = []
 
   #to run at = response from aws -> get the finish time from the last comment
   promo_attributes = {
@@ -52,7 +57,8 @@ def comment_round(promo_username):
     'target_account': promo_target,
     'proxy': promo_proxy,
     'accounts_already_commented_on': accounts_already_commented_on,
-    'custom_comments': account_custom_comment_pool
+    'custom_comments': account_custom_comment_pool,
+    'num_comments': number_of_comments_to_do,
   }
 
   logging.debug(f'''Comment round for {promo_username}, targeting {promo_target},
@@ -75,8 +81,13 @@ def comment_round(promo_username):
 
 def continue_queue(promo_username, sleep_until_tomorrow):
   logging.debug(f'continuing queue, will sleep until tomorrow: {sleep_until_tomorrow}')
-  if sleep_until_tomorrow:
-    queue.enqueue_in(timedelta(hours=10, minutes=randint(10,50)), comment_round, promo_username)
-
+  if sleep_until_tomorrow and promo_account_service.promo_should_sleep_a_day(promo_username):
+    # is going to sleep tomorrow and time to rest for a day ->
+    # rest for 34.5 hours
+    loggin.debug(f'{promo_username} is sleeping for a day')
+    promo_account_service.reset_promo_comments_until_sleep(promo_username)
+    queue.enqueue_in(timedelta(hours=34, minutes=randint(0,60)), comment_round, promo_username)
+  elif sleep_until_tomorrow:
+    queue.enqueue_in(timedelta(hours=9, minutes=randint(30,150)), comment_round, promo_username)
   else:
     queue.enqueue_in(timedelta(minutes=randint(80,100)), comment_round, promo_username)

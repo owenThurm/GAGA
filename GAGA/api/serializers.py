@@ -41,7 +41,7 @@ class CommentedAccountSerializer(serializers.ModelSerializer):
   """Serializes a commented on account"""
   class Meta:
     model = Commented_On_Account
-    fields = ('commented_on_account_username', 'user')
+    fields = ('commented_on_account_username', 'user', 'promo_account')
 
 class AuthenticationSerializer(serializers.Serializer):
   """Serializes authentication request bodies"""

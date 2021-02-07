@@ -1,5 +1,6 @@
 from ..models import Promo_Account, User
 from .user_service import UserService
+from random import randint
 
 class PromoAccountService:
 
@@ -19,7 +20,7 @@ class PromoAccountService:
     return self._get_promo_account(promo_username).target_accounts
 
   def get_next_promo_target(self, promo_username):
-    return self.get_promo_targets(promo_username)[0]
+    return self.get_promo_targets(promo_username)[0] if self.get_promo_targets(promo_username) else ''
 
   def set_promo_targeting_list(self, promo_username, target_accounts):
     promo_account = self._get_promo_account(promo_username)
@@ -116,10 +117,7 @@ class PromoAccountService:
     return promo_account
 
   def get_accounts_already_commented_on(self, promo_username):
-    commented_on_account_list = []
-    for commented_on_account in list(self._get_promo_account_owner(promo_username).commented_on_account_set.all()):
-      commented_on_account_list.push(commented_on_account.commented_on_account_username)
-    return commented_on_account_list
+    return list(self._get_promo_account_owner(promo_username).commented_on_account_set.all())
 
   def get_comment_rounds_today(self, promo_username):
     return self._get_promo_account(promo_username).comment_rounds_today
@@ -143,3 +141,33 @@ class PromoAccountService:
     promo_account.comment_rounds_today = 0
     promo_account.save()
     return promo_account.comment_rounds_today
+
+  def get_promo_comment_level(self, promo_username):
+    promo_account = self._get_promo_account(promo_username)
+    commented_on_set = promo_account.commented_on_account_set.all()
+    number_of_commented_on_accounts = len(commented_on_set)
+    comment_level = min(number_of_commented_on_accounts // 400 + 5, 12)
+    return comment_level
+
+  def subtract_comments_from_comments_until_sleep(self, promo_username, commented_on_accounts_list):
+    promo_account = self._get_promo_account(promo_username)
+    number_of_comments_to_subtract = len(commented_on_accounts_list)
+    promo_account_comments_until_sleep = promo_account.comments_until_sleep
+    print(number_of_comments_to_subtract)
+    promo_account.comments_until_sleep = promo_account_comments_until_sleep - number_of_comments_to_subtract
+    promo_account.save()
+    print(promo_account.comments_until_sleep)
+    return promo_account.comments_until_sleep
+
+  def promo_should_sleep_a_day(self, promo_username):
+    return self.get_promo_comments_until_sleep(promo_username) <= 0
+
+  def get_promo_comments_until_sleep(self, promo_username):
+    return self._get_promo_account(promo_username).comments_until_sleep
+
+  def reset_promo_comments_until_sleep(self, promo_username):
+    promo_account = self._get_promo_account(promo_username)
+    random_comments_until_sleep = randint(800, 1400)
+    promo_account.comments_until_sleep = random_comments_until_sleep
+    promo_account.save()
+    return random_comments_until_sleep
