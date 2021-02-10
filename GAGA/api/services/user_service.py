@@ -132,4 +132,4 @@ class UserService():
     token = Token.objects.get(key=user_token)
     user_id = token.user_id
     user = self._get_user_by_id(user_id)
-    return user.username
+    return (user.username, user.email)
