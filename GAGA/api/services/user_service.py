@@ -10,6 +10,9 @@ class UserService():
   def _get_user_by_email(self, user_email):
     return User.objects.get(email=user_email)
 
+  def _get_user_by_id(self, user_id):
+    return User.objects.get(id=user_id)
+
   def get_user_username_from_email(self, user_email):
     return self._get_user_by_email(user_email).username
 
@@ -124,3 +127,9 @@ class UserService():
     user = self._get_user_by_username(user_username)
     auth_token = Token.objects.get_or_create(user=user)
     return auth_token[0].key
+
+  def get_identity_from_token(self, user_token):
+    token = Token.objects.get(key=user_token)
+    user_id = token.user_id
+    user = self._get_user_by_id(user_id)
+    return user.username

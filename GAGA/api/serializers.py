@@ -19,6 +19,11 @@ class UserSerializer(serializers.ModelSerializer):
 
     return user
 
+class TokenSerializer(serializers.Serializer):
+  """Serializes an authentication token"""
+
+  token = serializers.CharField(max_length=120)
+
 class PostPromoSerializer(serializers.ModelSerializer):
   """Serializes a User's Promo Account"""
   class Meta:
