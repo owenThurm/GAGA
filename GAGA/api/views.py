@@ -55,7 +55,8 @@ class UserAPIView(views.APIView):
 
     if user_serializer.is_valid():
       user_serializer.save()
-      return Response({'message': 'saved', 'data': user_serializer.data})
+      auth_token = user_service.generate_token(user_serializer.data['username'])
+      return Response({'message': 'saved', 'data': user_serializer.data, 'token': auth_token})
     else:
       return Response({"message": "invalid user", "data": user_serializer.data})
 
@@ -188,9 +189,17 @@ class AuthenticationAPIView(views.APIView):
 
   def post(self, request, format=None):
     '''
-    post email and password in body
-    returns true if authenticated, false if not.
+      post email and password in body
+      returns true if authenticated, false if not.
+
+      Expects the following body:
+
+      {
+        'email': 'owen.p.thurm@gmail.com',
+        'password': 'Password123',
+      }
     '''
+
     auth_serializer = serializers.AuthenticationSerializer(data=request.data)
 
     if auth_serializer.is_valid():
@@ -202,10 +211,12 @@ class AuthenticationAPIView(views.APIView):
         # did not pass authentication
         return Response({"message": "invalid credentials", "authenticated": False})
       else:
+        auth_token = user_service.generate_token(user_username)
         return Response({
           "message": "successfully authenticated",
           "authenticated": True,
           "data": user_username,
+          "token": auth_token,
         })
     else:
       return Response({"message": "invalid", "data": auth_serializer.data})
