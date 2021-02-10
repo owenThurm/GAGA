@@ -237,10 +237,11 @@ class TokenIdentityAPIView(views.APIView):
 
     if token_serializer.is_valid():
       user_token = token_serializer.data['token']
-      user_username  = user_service.get_identity_from_token(user_token)
+      (user_username, user_email)  = user_service.get_identity_from_token(user_token)
       return Response({
-        "message": "user username",
-        "data": user_username
+        "message": "user identity",
+        "username": user_username,
+        "email": user_email
       })
     else:
       return Response({
