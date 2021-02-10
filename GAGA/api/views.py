@@ -221,6 +221,33 @@ class AuthenticationAPIView(views.APIView):
     else:
       return Response({"message": "invalid", "data": auth_serializer.data})
 
+class TokenIdentityAPIView(views.APIView):
+  '''Used to get the identity corresponding to a given token'''
+
+  def post(self, request, format=None):
+    '''
+      Expects the following body:
+
+      {
+        token: 'akdjfhaadf434...'
+      }
+    '''
+
+    token_serializer = serializers.TokenSerializer(data=request.data)
+
+    if token_serializer.is_valid():
+      user_token = token_serializer.data['token']
+      user_username  = user_service.get_identity_from_token(user_token)
+      return Response({
+        "message": "user username",
+        "data": user_username
+      })
+    else:
+      return Response({
+        "message": "invalid",
+        "data": token_serializer.data,
+        "errors": token_serializer._errors})
+
 class ActivateAPIView(views.APIView):
   '''An APIView for activating promo accounts'''
 
