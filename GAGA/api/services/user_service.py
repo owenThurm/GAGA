@@ -1,5 +1,6 @@
 from ..models import User, CustomComment
 from django.contrib.auth import authenticate
+from rest_framework.authtoken.models import Token
 
 class UserService():
 
@@ -118,3 +119,8 @@ class UserService():
       else:
         user_custom_comment_set.add(new_custom_comment)
     return None
+
+  def generate_token(self, user_username):
+    user = self._get_user_by_username(user_username)
+    auth_token = Token.objects.get_or_create(user=user)
+    return auth_token[0].key
