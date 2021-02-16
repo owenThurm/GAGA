@@ -11,6 +11,8 @@ urlpatterns = [
     url('user/setcustomcomments', views.SetCommentPoolAPIView.as_view()),
     url('user/authenticate', views.AuthenticationAPIView.as_view()),
     url('user/getidentity', views.TokenIdentityAPIView.as_view()),
+    url('user/forgotpassword', views.ForgotPasswordAPIView.as_view()),
+    url('user/tokenresetpassword', views.ResetPasswordWithTokenAPIView.as_view()),
     url('user', views.UserAPIView.as_view()),
     url('promo', views.PromoAPIView.as_view()),
     url('commentedaccounts', views.CommentedAccountsAPIView.as_view()),
