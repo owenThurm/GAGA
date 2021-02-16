@@ -108,3 +108,14 @@ class GetCustomCommentSerializer(serializers.ModelSerializer):
   class Meta:
     model = CustomComment
     fields = ('id', 'comment_text')
+
+class ForgotPasswordSerializer(serializers.Serializer):
+  """Serializes a request to reset a forgotten password"""
+
+  email = serializers.EmailField()
+
+class ResetPasswordAuthenticatedSerializer(serializers.Serializer):
+  """Serializes a request to reset a password using ResetPasswordToken authentication"""
+
+  new_password = serializers.CharField(max_length=20)
+  reset_password_token = serializers.CharField(max_length=120)

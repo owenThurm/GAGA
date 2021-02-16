@@ -9,6 +9,8 @@ from . import serializers
 from .utils import add_to_queue
 from datetime import datetime
 import pytz
+import os
+import smtplib
 
 promo_account_service = PromoAccountService()
 user_service = UserService()
@@ -589,3 +591,114 @@ class CustomCommentPoolAPIView(views.APIView):
       return Response({"message": "updated", "data": update_custom_comment_serializer.data})
     else:
       return Response({"message": "invalid", "data": update_custom_comment_serializer.data})
+
+class ForgotPasswordAPIView(views.APIView):
+
+  def post(self, request, format=None):
+    '''
+      Expects the following body:
+
+      {
+        "email": "owen.p.thurm@gmail.com"
+      }
+    '''
+
+    forgot_password_serializer = serializers.ForgotPasswordSerializer(data=request.data)
+
+    if forgot_password_serializer.is_valid():
+      email = request.data["email"]
+      user_username = user_service.get_user_username_from_email(email)
+      # generate a reset password token for that user
+      reset_password_token = user_service.generate_reset_password_token_for_user(user_username)
+      reset_password_url = 'https://growthautomation.netlify.com/resetpassword/reset?token='+reset_password_token
+      # send an email with reset password instructions as well as a link to
+      # https://growthautomation.netlify.com/resetpassword/reset?token=adfadfadfasdfadfl
+      with smtplib.SMTP('smtp.gmail.com', 587) as smtp:
+        smtp.ehlo()
+        smtp.starttls()
+        smtp.ehlo()
+
+        smtp.login('genuineapparelsuccess@gmail.com', 'ntdqiwzyasuvpruo')
+
+        subject = 'Growth Automation Reset Password'
+        body = f'Follow this link to reset your password!\n{reset_password_url}'
+
+        msg = f'Subject: {subject}\n\n{body}'
+
+        smtp.sendmail('genuineapparelsuccess@gmail.com', email, msg)
+
+      return Response({"message": "Reset Password Email Sent", "data": forgot_password_serializer.data})
+    else:
+      return Response({
+        "message": "invalid",
+        "data": forgot_password_serializer.data,
+        "errors": forgot_password_serializer.errors})
+
+class ResetPasswordWithTokenAPIView(views.APIView):
+  '''Handles requests to reset a user's password with ResetPasswordToken authentication'''
+
+  def get(self, request, format=None):
+    '''Returns the user username associated with a reset password token'''
+
+    '''
+      Expects the following query parameters
+    '''
+
+    try:
+      reset_password_token = request.query_params['reset_password_token']
+      try:
+        user_username = user_service.get_user_from_reset_password_token(reset_password_token)
+        return Response({
+          "message": "user username",
+          "data": user_username
+        })
+      except Exception as e:
+        return Response({
+          "message": "no user corresponding to reset password token"
+        })
+    except Exception as e:
+      return Response({
+        "message": "invalid",
+        "data": "must include a reset password token"
+      })
+
+
+  def post(self, request, format=None):
+    '''
+      Expects the following body:
+
+      {
+        "new_password": "password123",
+        "reset_password_token": "adfadskjhfalkdh..."
+      }
+    '''
+
+    reset_password_serializer = serializers.ResetPasswordAuthenticatedSerializer(data=request.data)
+
+    if reset_password_serializer.is_valid():
+      new_password = request.data['new_password']
+      reset_password_token = request.data['reset_password_token']
+      try:
+        is_valid_reset_password_token = user_service.reset_password_token_is_valid(reset_password_token)
+      except Exception as e:
+        return Response({
+          "message": "token doesn't exist or has already been used"
+        })
+      if is_valid_reset_password_token:
+        user_username = user_service.get_user_from_reset_password_token(reset_password_token)
+        user_service.reset_user_password(user_username, new_password)
+        user_service.delete_reset_password_token(reset_password_token)
+        return Response({
+          "message": "password reset",
+          "data": reset_password_serializer.data
+        })
+      else:
+        return Response({
+          "message": "Token is invalid",
+          "data": reset_password_serializer.data
+        })
+    else:
+      return Response({
+        "message": "invalid",
+        "data": reset_password_serializer.data,
+        "errors": reset_password_serializer.errors})

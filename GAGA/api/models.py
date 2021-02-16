@@ -1,8 +1,13 @@
 from django.db import models
 from django.contrib.postgres.fields import ArrayField
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
+from datetime import datetime, timedelta
 
 # Growth Automation Models
+
+def default_start_time():
+    now = datetime.now()
+    return now + timedelta(days=1)
 
 class UserManager(BaseUserManager):
 
@@ -94,3 +99,8 @@ class Commented_On_Account(models.Model):
 class CustomComment(models.Model):
   comment_text = models.CharField(max_length=100)
   user = models.ForeignKey(User, on_delete=models.CASCADE)
+
+class ResetPasswordToken(models.Model):
+  key = models.CharField(max_length=120)
+  user = models.ForeignKey(User, on_delete=models.CASCADE)
+  valid_until = models.DateTimeField(default=default_start_time)
