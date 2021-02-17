@@ -607,7 +607,13 @@ class ForgotPasswordAPIView(views.APIView):
 
     if forgot_password_serializer.is_valid():
       email = request.data["email"]
-      user_username = user_service.get_user_username_from_email(email)
+      try:
+        user_username = user_service.get_user_username_from_email(email)
+      except Exception as e:
+        return Response({
+          "message": "No user corresponding to email",
+          "data": forgot_password_serializer.data
+        })
       # generate a reset password token for that user
       reset_password_token = user_service.generate_reset_password_token_for_user(user_username)
       reset_password_url = 'https://growthautomation.netlify.com/resetpassword/reset?token='+reset_password_token
