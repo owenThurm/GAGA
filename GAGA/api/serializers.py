@@ -119,3 +119,8 @@ class ResetPasswordAuthenticatedSerializer(serializers.Serializer):
 
   new_password = serializers.CharField(max_length=20)
   reset_password_token = serializers.CharField(max_length=120)
+
+class UserUsernameSerializer(serializers.Serializer):
+  """Serializes a request with just a user's username in it"""
+
+  user_username = serializers.CharField(max_length=30)

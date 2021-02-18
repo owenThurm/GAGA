@@ -3,11 +3,18 @@ from django.contrib.auth import authenticate
 from rest_framework.authtoken.models import Token
 from django.utils.crypto import get_random_string
 from datetime import datetime
+from django.utils.functional import cached_property
 import pytz
 
 utc = pytz.UTC
 
 class UserService():
+
+  @cached_property
+  def promo_account_service(self):
+    from .promo_account_service import PromoAccountService
+
+    return PromoAccountService()
 
   def _get_user_by_username(self, user_username):
     return User.objects.get(username=user_username)
@@ -175,3 +182,42 @@ class UserService():
     token = self._get_reset_password_token_from_key(reset_password_token_key)
     token.delete()
     return reset_password_token_key
+
+  def get_user_stats(self, user_username):
+    all_time_num_comments = self.get_user_all_time_num_comments(user_username)
+    user_promo_accounts_comment_level = self.get_user_promo_accounts_with_comment_levels(user_username)
+
+    return {
+      "all_time_num_comments": all_time_num_comments,
+      "user_promo_accounts_comment_level": user_promo_accounts_comment_level
+    }
+
+  def _get_user_commented_on_accounts(self, user_username):
+    user = self._get_user_by_username(user_username)
+    return user.commented_on_account_set.all()
+
+  def get_user_all_time_num_comments(self, user_username):
+    return len(self._get_user_commented_on_accounts(user_username))
+
+  def _get_user_promo_accounts(self, user_username):
+    user = self._get_user_by_username(user_username)
+    return user.promo_account_set.all()
+
+  def get_user_promo_accounts_usernames(self, user_username):
+    user_promo_accounts = self._get_user_promo_accounts(user_username)
+    promo_account_usernames = []
+    for promo_account in user_promo_accounts:
+      promo_account_usernames.append(promo_account.promo_username)
+    return promo_account_usernames
+
+  def get_user_promo_accounts_with_comment_levels(self, user_username):
+    user_promo_accounts = self.get_user_promo_accounts_usernames(user_username)
+
+    promo_accounts_with_comment_levels = map(
+      self.make_promo_account_comment_level_tuple, user_promo_accounts
+    )
+    return promo_accounts_with_comment_levels
+
+  def make_promo_account_comment_level_tuple(self, promo_account):
+    promo_account_comment_level = self.promo_account_service.get_promo_comment_level(promo_account)
+    return (promo_account, promo_account_comment_level)

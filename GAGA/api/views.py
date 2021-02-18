@@ -708,3 +708,34 @@ class ResetPasswordWithTokenAPIView(views.APIView):
         "message": "invalid",
         "data": reset_password_serializer.data,
         "errors": reset_password_serializer.errors})
+
+class UserStatisticsAPIView(views.APIView):
+  ''' Used for getting the comment statistics associated with a user '''
+
+  def get(self, request, format=None):
+    '''
+      Returns the comment statistics related to a user
+
+      Expects the following query params:
+
+      user=owenthurm
+    '''
+
+    try:
+      user_username = request.query_params['user']
+      try:
+        user_stats = user_service.get_user_stats(user_username)
+        return Response({
+          "message": "statistics for " + user_username,
+          "data": user_stats
+        })
+      except Exception as e:
+        return Response({
+          "message": "no user corresponding to username",
+          "data": user_username
+        })
+    except Exception as e:
+      return Response({
+        "message": "invalid",
+        "data": "No user provided"
+      })
