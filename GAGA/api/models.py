@@ -91,7 +91,7 @@ class Promo_Account(models.Model):
 class Commented_On_Account(models.Model):
   commented_on_account_username = models.CharField(max_length=30)
   user = models.ForeignKey(User, on_delete=models.CASCADE)
-  promo_account = models.ForeignKey(Promo_Account, on_delete=models.CASCADE)
+  promo_account = models.ForeignKey(Promo_Account, on_delete=models.CASCADE, null=True)
 
   def __str__(self):
     return self.commented_on_account_username
