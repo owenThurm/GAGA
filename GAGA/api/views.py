@@ -30,7 +30,6 @@ class UserAPIView(views.APIView):
       if(user_username != None):
         try:
           user_data = user_service.get_user_data(user_username)
-          print(user_data)
         except Exception as e:
           print(e)
           return Response({"message": "No user corresponding to username: " + user_username})
@@ -40,14 +39,17 @@ class UserAPIView(views.APIView):
     except Exception as e:
       pass
     try:
-        user_email = request.query_params['email']
-        if(user_email != None):
-          try:
-            user = models.User.objects.get(email=user_email)
-          except Exception as e:
-            return Response({"message": "No user corresponding to email: " + user_email})
-          user_serializer = serializers.UserSerializer(user)
-          return Response(user_serializer.data)
+      user_email = request.query_params['email']
+      if(user_email != None):
+        try:
+          user_username = user_service.get_username_from_email(user_email)
+          user_data = user_service.get_user_data(user_username)
+        except Exception as e:
+          print(e)
+          return Response({"message": "No user corresponding to email: " + user_email})
+        return Response({
+          "message": "successfully got user",
+          "user_data": user_data})
     except Exception as e:
       pass
     users = self.get_queryset()

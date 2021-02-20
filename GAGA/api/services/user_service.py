@@ -269,3 +269,7 @@ class UserService():
       "promo_total_comments": promo_total_comments,
       "promo_comment_level": promo_comment_level,
     }
+
+  def get_username_from_email(self, user_email):
+    user = self._get_user_by_email(user_email)
+    return user.username
