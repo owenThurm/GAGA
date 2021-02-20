@@ -6,6 +6,7 @@ urlpatterns = [
     url('user/promoaccounts', views.UserPromoAccountsAPIView.as_view()),
     url('promo/deactivateall', views.DeactivateAllAPIView.as_view()),
     url('promo/dequeue', views.DequeuePromoAccountAPIView.as_view()),
+    url('promo/liking', views.LikingAPIView.as_view()),
     url('user/resetpassword', views.ResetPasswordAPIView.as_view()),
     url('user/customcomments', views.CustomCommentPoolAPIView.as_view()),
     url('user/setcustomcomments', views.SetCommentPoolAPIView.as_view()),

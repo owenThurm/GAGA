@@ -174,3 +174,14 @@ class PromoAccountService:
     promo_account.comments_until_sleep = random_comments_until_sleep
     promo_account.save()
     return random_comments_until_sleep
+
+  def promo_account_is_liking(self, promo_username):
+    promo_account = self._get_promo_account(promo_username)
+    return promo_account.is_liking
+
+  def set_promo_is_liking(self, promo_username, is_liking):
+    promo_account = self._get_promo_account(promo_username)
+    if promo_account.is_liking != is_liking:
+      promo_account.is_liking = is_liking
+      promo_account.save()
+    return is_liking

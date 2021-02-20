@@ -6,7 +6,8 @@ class UserSerializer(serializers.ModelSerializer):
 
   class Meta:
     model = User
-    fields = ('id', 'username', 'email', 'brand_name', 'password', 'location', 'using_custom_comments')
+    fields = ('id', 'username', 'email', 'brand_name', 'password',
+              'location', 'using_custom_comments')
 
   def create(self, validated_data):
     user = User.objects.create_user(
@@ -34,8 +35,9 @@ class GetPromoSerializer(serializers.ModelSerializer):
   """Serializes a User's Promo Account"""
   class Meta:
     model = Promo_Account
-    fields = ('promo_username', 'promo_password', 'target_accounts',
-     'user', 'activated', 'under_review', 'comment_rounds_today', 'is_queued')
+    fields = ('promo_username', 'promo_password', 'target_accounts', 'user',
+              'activated', 'under_review', 'comment_rounds_today', 'is_queued',
+              'proxy', 'comments_until_sleep', 'is_liking')
 
 class CommentedAccountsSerializer(serializers.Serializer):
   """Serializes accounts commented on for a given user"""
@@ -124,3 +126,9 @@ class UserUsernameSerializer(serializers.Serializer):
   """Serializes a request with just a user's username in it"""
 
   user_username = serializers.CharField(max_length=30)
+
+class LikingSerializer(serializers.Serializer):
+  """Serializes a request to toggle is_liking"""
+
+  promo_username = serializers.CharField(max_length=30)
+  is_liking = serializers.BooleanField()

@@ -52,7 +52,6 @@ class UserAPIView(views.APIView):
     return Response(user_serializer.data)
 
   def post(self, request, format=None):
-    print('called post, request: ', request.data)
     user_serializer = serializers.UserSerializer(data=request.data)
 
     if user_serializer.is_valid():
@@ -79,7 +78,6 @@ class PromoAPIView(views.APIView):
           return Response({"message": "No promo account corresponding to username: " + promo_username})
         promo_serializer = serializers.GetPromoSerializer(promo_account)
     except Exception as e:
-      print(e)
       promo_accounts = self.get_queryset()
       promo_serializer = serializers.GetPromoSerializer(promo_accounts, many=True)
     return Response(promo_serializer.data)
@@ -153,7 +151,6 @@ class CommentedAccountsAPIView(views.APIView):
       "commented_on_accounts": ["commented_on_account_1_username",
                                 "commented_on_account_2_username", ...]
     }'''
-    print(request.data)
 
     commented_accounts_serializer = serializers.CommentedAccountsSerializer(data=request.data)
 
@@ -738,4 +735,69 @@ class UserStatisticsAPIView(views.APIView):
       return Response({
         "message": "invalid",
         "data": "No user provided"
+      })
+
+class LikingAPIView(views.APIView):
+  '''Used to get/set information about promo account liking'''
+
+  def get(self, request, format=None):
+    '''
+      Used to get the status of liking for a promo account
+
+      expects the following query params:
+
+      ?promo_username=upcomingstreetwearfashion
+    '''
+    try:
+      promo_username = request.query_params['promo_username']
+      try:
+        is_liking = promo_account_service.promo_account_is_liking(promo_username)
+        return Response({
+          "message": "promo account liking status",
+          "data": "is_liking: " + str(is_liking)
+        })
+      except Exception as e:
+        return Response({
+          "message": "invalid",
+          "data": "no promo account corresponds to " + promo_username
+        })
+    except Exception as e:
+      return Response({
+        "message": "invalid",
+        "data": "no promo_username provided"
+      })
+
+  def put(self, request, format=None):
+    '''
+      Used to set the liking status of a promo account
+
+      Expects the following body:
+
+      {
+        "promo_username": "upcomingstreetwearfashion",
+        "is_liking": False
+      }
+    '''
+
+    toggle_is_liking_serializer = serializers.LikingSerializer(data=request.data)
+
+    if toggle_is_liking_serializer.is_valid():
+      promo_username = request.data['promo_username']
+      is_liking = request.data['is_liking']
+      try:
+        promo_account_service.set_promo_is_liking(promo_username, is_liking)
+        return Response({
+          "message": "promo liking status set",
+          "data": "is_liking: " + str(is_liking)
+        })
+      except Exception as e:
+        return Response({
+          "message": "invalid",
+          "data": "no promo account corresponds to " + promo_username
+        })
+    else:
+      return Response({
+        "message": "invalid",
+        "data": toggle_is_liking_serializer.data,
+        "errors": toggle_is_liking_serializer.errors
       })

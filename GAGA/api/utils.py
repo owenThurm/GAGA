@@ -44,6 +44,7 @@ def comment_round(promo_username):
   promo_owner_username = promo_account_service.get_promo_account_owner_username(promo_username)
   activated = promo_account_service.promo_account_is_activated(promo_username)
   number_of_comments_to_do = promo_account_service.get_promo_comment_level(promo_username)
+  is_liking = promo_account_service.promo_account_is_liking(promo_username)
 
   if(user_service.user_is_using_custom_comment_pool(promo_owner_username)):
     account_custom_comment_pool = user_service.get_user_custom_comments_text(promo_owner_username)
@@ -59,6 +60,7 @@ def comment_round(promo_username):
     'accounts_already_commented_on': accounts_already_commented_on,
     'custom_comments': account_custom_comment_pool,
     'num_comments': number_of_comments_to_do,
+    'is_liking': is_liking,
   }
 
   logging.debug(f'''Comment round for {promo_username}, targeting {promo_target},

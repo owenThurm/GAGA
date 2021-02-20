@@ -82,6 +82,7 @@ class Promo_Account(models.Model):
   is_queued = models.BooleanField(default=False)
   under_review = models.BooleanField(default=True)
   comments_until_sleep = models.IntegerField(default=800)
+  is_liking = models.BooleanField(default=True)
 
   REQUIRED_FIELDS = ["promo_username", "promo_password", "target_accounts", "user"]
 
@@ -91,7 +92,7 @@ class Promo_Account(models.Model):
 class Commented_On_Account(models.Model):
   commented_on_account_username = models.CharField(max_length=30)
   user = models.ForeignKey(User, on_delete=models.CASCADE)
-  promo_account = models.ForeignKey(Promo_Account, on_delete=models.CASCADE, null=True)
+  promo_account = models.ForeignKey(Promo_Account, on_delete=models.CASCADE)
 
   def __str__(self):
     return self.commented_on_account_username
