@@ -226,6 +226,7 @@ class UserService():
   def get_user_data(self, user_username):
     user = self._get_user_by_username(user_username)
     user_promo_accounts = self.get_user_promo_accounts(user_username)
+    user_total_comments = self.get_user_all_time_num_comments(user_username)
     user_data = {
       "user_username": user.username,
       "user_email": user.email,
@@ -238,6 +239,7 @@ class UserService():
       "user_brand_name": user.brand_name,
       "user_location": user.location,
       "user_using_custom_coments": user.using_custom_comments,
+      "user_total_comments": user_total_comments,
       "user_promo_accounts": user_promo_accounts,
     }
     return user_data
@@ -249,6 +251,9 @@ class UserService():
     return user_promo_objects
 
   def _get_promo_object(self, promo_account):
+    promo_username = promo_account.promo_username
+    promo_total_comments = self.promo_account_service.get_promo_total_comments_num(promo_username)
+    promo_comment_level = self.promo_account_service.get_promo_comment_level(promo_username)
     return {
       "promo_username": promo_account.promo_username,
       "promo_password": promo_account.promo_password,
@@ -261,4 +266,6 @@ class UserService():
       "promo_under_review": promo_account.under_review,
       "promo_comments_until_sleep": promo_account.comments_until_sleep,
       "promo_is_liking": promo_account.is_liking,
+      "promo_total_comments": promo_total_comments,
+      "promo_comment_level": promo_comment_level,
     }

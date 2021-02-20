@@ -185,3 +185,11 @@ class PromoAccountService:
       promo_account.is_liking = is_liking
       promo_account.save()
     return is_liking
+
+  def get_promo_total_comments_num(self, promo_username):
+    promo_account = self._get_promo_account(promo_username)
+    return len(promo_account.commented_on_account_set.all())
+
+  def _get_promo_commented_on_set(self, promo_username):
+    promo_account = self._get_promo_account(promo_username)
+    return promo_account.commented_on_account_set.all()
