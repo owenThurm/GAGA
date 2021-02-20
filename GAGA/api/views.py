@@ -29,11 +29,14 @@ class UserAPIView(views.APIView):
       user_username = request.query_params['username']
       if(user_username != None):
         try:
-          user = models.User.objects.get(username=user_username)
+          user_data = user_service.get_user_data(user_username)
+          print(user_data)
         except Exception as e:
+          print(e)
           return Response({"message": "No user corresponding to username: " + user_username})
-        user_serializer = serializers.UserSerializer(user)
-        return Response(user_serializer.data)
+        return Response({
+          "message": "successfully got user",
+          "user_data": user_data})
     except Exception as e:
       pass
     try:
@@ -754,7 +757,7 @@ class LikingAPIView(views.APIView):
         is_liking = promo_account_service.promo_account_is_liking(promo_username)
         return Response({
           "message": "promo account liking status",
-          "data": "is_liking: " + str(is_liking)
+          "data": is_liking
         })
       except Exception as e:
         return Response({
@@ -788,7 +791,7 @@ class LikingAPIView(views.APIView):
         promo_account_service.set_promo_is_liking(promo_username, is_liking)
         return Response({
           "message": "promo liking status set",
-          "data": "is_liking: " + str(is_liking)
+          "data": is_liking
         })
       except Exception as e:
         return Response({

@@ -3,6 +3,7 @@ from django.contrib.auth import authenticate
 from rest_framework.authtoken.models import Token
 from django.utils.crypto import get_random_string
 from datetime import datetime
+from .. import serializers
 from django.utils.functional import cached_property
 import pytz
 
@@ -214,10 +215,50 @@ class UserService():
     user_promo_accounts = self.get_user_promo_accounts_usernames(user_username)
 
     promo_accounts_with_comment_levels = map(
-      self.make_promo_account_comment_level_tuple, user_promo_accounts
+      self._make_promo_account_comment_level_tuple, user_promo_accounts
     )
     return promo_accounts_with_comment_levels
 
-  def make_promo_account_comment_level_tuple(self, promo_account):
+  def _make_promo_account_comment_level_tuple(self, promo_account):
     promo_account_comment_level = self.promo_account_service.get_promo_comment_level(promo_account)
     return (promo_account, promo_account_comment_level)
+
+  def get_user_data(self, user_username):
+    user = self._get_user_by_username(user_username)
+    user_promo_accounts = self.get_user_promo_accounts(user_username)
+    user_data = {
+      "user_username": user.username,
+      "user_email": user.email,
+      "user_date_joined": user.date_joined,
+      "user_last_login": user.last_login,
+      "user_is_admin": user.is_admin,
+      "user_is_superuser": user.is_superuser,
+      "user_is_staff": user.is_staff,
+      "user_is_active": user.is_active,
+      "user_brand_name": user.brand_name,
+      "user_location": user.location,
+      "user_using_custom_coments": user.using_custom_comments,
+      "user_promo_accounts": user_promo_accounts,
+    }
+    return user_data
+
+  def get_user_promo_accounts(self, user_username):
+    user = self._get_user_by_username(user_username)
+    user_promo_accounts = user.promo_account_set.all()
+    user_promo_objects = map(self._get_promo_object, user_promo_accounts)
+    return user_promo_objects
+
+  def _get_promo_object(self, promo_account):
+    return {
+      "promo_username": promo_account.promo_username,
+      "promo_password": promo_account.promo_password,
+      "promo_is_activated": promo_account.activated,
+      "promo_proxy": promo_account.proxy,
+      "promo_target_accounts": promo_account.target_accounts,
+      "promo_owner": promo_account.user.username,
+      "promo_comment_rounds_today": promo_account.comment_rounds_today,
+      "promo_is_queued": promo_account.is_queued,
+      "promo_under_review": promo_account.under_review,
+      "promo_comments_until_sleep": promo_account.comments_until_sleep,
+      "promo_is_liking": promo_account.is_liking,
+    }
