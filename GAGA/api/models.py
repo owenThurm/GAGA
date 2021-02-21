@@ -83,6 +83,7 @@ class Promo_Account(models.Model):
   under_review = models.BooleanField(default=True)
   comments_until_sleep = models.IntegerField(default=800)
   is_liking = models.BooleanField(default=True)
+  is_disabled = models.BooleanField(default=False)
 
   REQUIRED_FIELDS = ["promo_username", "promo_password", "target_accounts", "user"]
 

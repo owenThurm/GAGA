@@ -132,3 +132,12 @@ class LikingSerializer(serializers.Serializer):
 
   promo_username = serializers.CharField(max_length=30)
   is_liking = serializers.BooleanField()
+
+class DisabledSerializer(serializers.Serializer):
+  """
+    Serializes a request to change the disabled
+    status of a promo account.
+  """
+
+  promo_username = serializers.CharField(max_length=30)
+  is_disabled = serializers.BooleanField()

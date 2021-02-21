@@ -193,3 +193,17 @@ class PromoAccountService:
   def _get_promo_commented_on_set(self, promo_username):
     promo_account = self._get_promo_account(promo_username)
     return promo_account.commented_on_account_set.all()
+
+  def update_promo_disabled_status(self, promo_username, is_disabled):
+    promo_account = self._get_promo_account(promo_username)
+    promo_account.is_disabled = is_disabled
+    promo_account.save()
+    return is_disabled
+
+  def promo_is_disabled(self, promo_username):
+    promo_account = self._get_promo_account(promo_username)
+    return promo_account.is_disabled
+
+  def promo_is_under_review(self, promo_username):
+    promo_account = self._get_promo_account(promo_username)
+    return promo_account.under_review

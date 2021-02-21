@@ -7,6 +7,8 @@ urlpatterns = [
     url('promo/deactivateall', views.DeactivateAllAPIView.as_view()),
     url('promo/dequeue', views.DequeuePromoAccountAPIView.as_view()),
     url('promo/liking', views.LikingAPIView.as_view()),
+    url('promo/review', views.SetProxyAPIView.as_view()),
+    url('promo/disable', views.DisableAPIView.as_view()),
     url('user/resetpassword', views.ResetPasswordAPIView.as_view()),
     url('user/customcomments', views.CustomCommentPoolAPIView.as_view()),
     url('user/setcustomcomments', views.SetCommentPoolAPIView.as_view()),
@@ -20,5 +22,4 @@ urlpatterns = [
     url('commentedaccounts', views.CommentedAccountsAPIView.as_view()),
     url('deactivate', views.DeactivateAPIView.as_view()),
     url('activate', views.ActivateAPIView.as_view()),
-    url('promo/review', views.SetProxyAPIView.as_view()),
 ]

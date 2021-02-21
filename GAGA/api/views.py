@@ -266,6 +266,12 @@ class ActivateAPIView(views.APIView):
     if activation_serializer.is_valid():
       promo_username = request.data['promo_username']
       promo_account = models.Promo_Account.objects.get(promo_username= promo_username)
+      is_disabled = promo_account_service.promo_is_disabled(promo_username)
+      if is_disabled:
+        return Response({
+          "message": "promo is disabled",
+          "data": activation_serializer.data,
+        })
       if not promo_account.under_review:
         if not promo_account.is_queued:
           print(f'adding {promo_username} to the queue')
@@ -805,4 +811,52 @@ class LikingAPIView(views.APIView):
         "message": "invalid",
         "data": toggle_is_liking_serializer.data,
         "errors": toggle_is_liking_serializer.errors
+      })
+
+class DisableAPIView(views.APIView):
+  '''Used to disable an account (still queued but can't be activated)'''
+
+  def put(self, request, format=None):
+    '''
+      Updates the disabled status of an account.
+
+      Expects the following body:
+
+      {
+        "promo_username": "upcomingstreetwearfashion",
+        "is_disabled": True
+      }
+    '''
+
+    set_disabled_status_serializer = serializers.DisabledSerializer(
+      data=request.data
+    )
+
+    if set_disabled_status_serializer.is_valid():
+      promo_username = request.data['promo_username']
+      is_disabled = request.data['is_disabled']
+      under_review = promo_account_service.promo_is_under_review(promo_username)
+      if under_review:
+        return Response({
+          "message": "under review",
+          "data": set_disabled_status_serializer.data
+        })
+      try:
+        promo_account_service.update_promo_disabled_status(promo_username, is_disabled)
+        if is_disabled:
+          promo_account_service.deactivate_promo_account(promo_username)
+      except Exception as e:
+        return Response({
+          "message": "no promo account corresponds to " + promo_username,
+          "data": set_disabled_status_serializer.data,
+        })
+      return Response({
+        "message": "updated promo account disabled status",
+        "data": is_disabled
+      })
+    else:
+      return Response({
+        "message": "invalid",
+        "data": set_disabled_status_serializer.data,
+        "errors": set_disabled_status_serializer.errors,
       })

@@ -45,6 +45,7 @@ def comment_round(promo_username):
   activated = promo_account_service.promo_account_is_activated(promo_username)
   number_of_comments_to_do = promo_account_service.get_promo_comment_level(promo_username)
   is_liking = promo_account_service.promo_account_is_liking(promo_username)
+  is_disabled = promo_account_service.promo_is_disabled(promo_username)
 
   if(user_service.user_is_using_custom_comment_pool(promo_owner_username)):
     account_custom_comment_pool = user_service.get_user_custom_comments_text(promo_owner_username)
@@ -69,7 +70,7 @@ def comment_round(promo_username):
   logging.debug('Comment Rounds Already Today: ', comment_rounds_today)
 
 
-  if activated:
+  if activated and not is_disabled:
     logging.debug('###Lambda Called###')
     requests.post(LAMBDA_URL, json=promo_attributes)
 
