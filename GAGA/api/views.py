@@ -57,6 +57,10 @@ class UserAPIView(views.APIView):
     return Response(user_serializer.data)
 
   def post(self, request, format=None):
+    try:
+      request.data['email'] = request.data['email'].lower()
+    except Exception as e:
+      pass
     user_serializer = serializers.UserSerializer(data=request.data)
 
     if user_serializer.is_valid():
