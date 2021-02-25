@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'django.contrib.postgres',
     'corsheaders',
     'rest_framework.authtoken',
+    'monitor',
 ]
 
 REST_FRAMEWORK = {
