@@ -33,5 +33,5 @@ class MonitorQueueAPIView(views.APIView):
       "comment_round_args": job.args,
       "function": job.func_name,
       "comment_round_is_scheduled": job.is_scheduled,
-      "comment__scheduled_at": job_scheduled_time,
+      "comment_round_scheduled_at": job_scheduled_time,
     }
