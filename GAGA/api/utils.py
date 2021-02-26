@@ -87,7 +87,7 @@ def continue_queue(promo_username, sleep_until_tomorrow):
   if sleep_until_tomorrow and promo_account_service.promo_should_sleep_a_day(promo_username):
     # is going to sleep tomorrow and time to rest for a day ->
     # rest for 34.5 hours
-    loggin.debug(f'{promo_username} is sleeping for a day')
+    logging.debug(f'{promo_username} is sleeping for a day')
     promo_account_service.reset_promo_comments_until_sleep(promo_username)
     queue.enqueue_in(timedelta(hours=34, minutes=randint(0,60)), comment_round, promo_username)
   elif sleep_until_tomorrow:
