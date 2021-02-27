@@ -26,6 +26,16 @@ class UserService():
   def _get_user_by_id(self, user_id):
     return User.objects.get(id=user_id)
 
+  def _get_user_set(self):
+    return User.objects.all()
+
+  def get_user_set(self):
+    users = self._get_user_set()
+    user_set_serializer = serializers.UserSerializer(users, many=True)
+    user_set = user_set_serializer.data
+    return user_set
+
+
   def get_user_username_from_email(self, user_email):
     return self._get_user_by_email(user_email).username
 
@@ -227,6 +237,7 @@ class UserService():
     user = self._get_user_by_username(user_username)
     user_promo_accounts = self.get_user_promo_accounts(user_username)
     user_total_comments = self.get_user_all_time_num_comments(user_username)
+    user_custom_comments = self.get_user_custom_comments_text(user_username)
     user_data = {
       "user_username": user.username,
       "user_email": user.email,
@@ -240,6 +251,7 @@ class UserService():
       "user_location": user.location,
       "user_using_custom_coments": user.using_custom_comments,
       "user_total_comments": user_total_comments,
+      "user_custom_comment_pool": user_custom_comments,
       "user_promo_accounts": user_promo_accounts,
     }
     return user_data

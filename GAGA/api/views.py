@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from rest_framework import views
+from rest_framework import views, status
 from rest_framework.response import Response
 from .services.promo_account_service import PromoAccountService
 from .services.user_service import UserService
@@ -21,9 +21,6 @@ class UserAPIView(views.APIView):
 
   serializer_class = serializers.UserSerializer
 
-  def get_queryset(self):
-    return models.User.objects.all()
-
   def get(self, request, format=None):
     try:
       user_username = request.query_params['username']
@@ -32,10 +29,13 @@ class UserAPIView(views.APIView):
           user_data = user_service.get_user_data(user_username)
         except Exception as e:
           print(e)
-          return Response({"message": "No user corresponding to username: " + user_username})
+          return Response({
+            "message": "No user corresponding to username: " + user_username,
+          }, status=status.HTTP_404_NOT_FOUND)
         return Response({
           "message": "successfully got user",
-          "user_data": user_data})
+          "user_data": user_data
+        }, status=status.HTTP_200_OK)
     except Exception as e:
       pass
     try:
@@ -46,15 +46,17 @@ class UserAPIView(views.APIView):
           user_data = user_service.get_user_data(user_username)
         except Exception as e:
           print(e)
-          return Response({"message": "No user corresponding to email: " + user_email})
+          return Response({
+            "message": "No user corresponding to email: " + user_email,
+          }, status=status.HTTP_404_NOT_FOUND)
         return Response({
           "message": "successfully got user",
-          "user_data": user_data})
+          "user_data": user_data
+        }, status=status.HTTP_200_OK)
     except Exception as e:
       pass
-    users = self.get_queryset()
-    user_serializer = serializers.UserSerializer(users, many=True)
-    return Response(user_serializer.data)
+    users = user_service.get_user_set()
+    return Response(users, status=status.HTTP_200_OK)
 
   def post(self, request, format=None):
     try:
@@ -66,30 +68,38 @@ class UserAPIView(views.APIView):
     if user_serializer.is_valid():
       user_serializer.save()
       auth_token = user_service.generate_token(user_serializer.data['username'])
-      return Response({'message': 'saved', 'data': user_serializer.data, 'token': auth_token})
+      return Response({
+        'message': 'saved', 'data': user_serializer.data,
+        'token': auth_token
+      }, status=status.HTTP_200_OK)
     else:
-      return Response({"message": "invalid user", "data": user_serializer.data})
+      return Response({
+        "message": "invalid user",
+        "data": user_serializer.data,
+        "errors": user_serializer.errors,
+      }, status=status.HTTP_400_BAD_REQUEST)
 
 class PromoAPIView(views.APIView):
   """APIView for Promo Accounts"""
   serializer_class = serializers.GetPromoSerializer
-
-  def get_queryset(self):
-    return models.Promo_Account.objects.all()
 
   def get(self, request, format=None):
     try:
       promo_username = request.query_params['username']
       if(promo_username != None):
         try:
-          promo_account = models.Promo_Account.objects.get(promo_username=promo_username)
+          promo_account_data = promo_account_service.get_promo_account_data(promo_username)
+          return Response({
+            "message": "promo data",
+            "data": promo_account_data
+          }, status=status.HTTP_200_OK)
         except Exception as e:
-          return Response({"message": "No promo account corresponding to username: " + promo_username})
-        promo_serializer = serializers.GetPromoSerializer(promo_account)
+          return Response({
+            "message": "No promo account corresponding to username: " + promo_username,
+          }, status=status.HTTP_404_NOT_FOUND)
     except Exception as e:
-      promo_accounts = self.get_queryset()
-      promo_serializer = serializers.GetPromoSerializer(promo_accounts, many=True)
-    return Response(promo_serializer.data)
+      promo_set_data = promo_account_service.get_promo_set()
+    return Response(promo_set_data, status=status.HTTP_200_OK)
 
   def post(self, request, format=None):
     '''post a promo and set it for review'''
@@ -103,16 +113,28 @@ class PromoAPIView(views.APIView):
       user: "Growth Automation user username who owns promo account"
     }
     '''
-
-    user_username = request.data['user']
+    try:
+      user_username = request.data['user']
+    except Exception as e:
+      return Response({
+        "message": "no user provided",
+        "data": request.data,
+      }, status=status.HTTP_400_BAD_REQUEST)
     request.data['user'] = models.User.objects.get(username=user_username).id
     promo_serializer = serializers.PostPromoSerializer(data=request.data)
 
     if promo_serializer.is_valid():
       promo_serializer.save()
-      return Response({"message": "saved", "data": promo_serializer.data})
+      return Response({
+        "message": "saved",
+        "data": promo_serializer.data
+      }, status=status.HTTP_200_OK)
     else:
-      return Response({"message": "invalid", "data": promo_serializer.errors})
+      return Response({
+        "message": "invalid",
+        "data": promo_serializer.data,
+        "errors": promo_serializer.errors
+      }, status=status.HTTP_400_BAD_REQUEST)
 
   def put(self, request, format=None):
     '''update a promo account and set it for review'''
@@ -135,12 +157,24 @@ class PromoAPIView(views.APIView):
       new_promo_username = request.data['new_promo_username']
       new_promo_password = request.data['new_promo_password']
       new_promo_targets = request.data['new_promo_targets']
-      promo_account_service.update_promo_account(old_promo_username, new_promo_username,
-                                                 new_promo_password, new_promo_targets)
-
-      return Response({"message": "updated", "data": update_promo_serializer.data})
+      try:
+        promo_account_service.update_promo_account(old_promo_username, new_promo_username,
+                                                  new_promo_password, new_promo_targets)
+        return Response({
+          "message": "updated",
+          "data": update_promo_serializer.data
+        }, status=status.HTTP_200_OK)
+      except Exception as e:
+        return Response({
+          "message": "no promo account corresponding to old promo username",
+          "data": old_promo_username
+        }, status=status.HTTP_404_NOT_FOUND)
     else:
-      return Response({"message": "invalid", "data": update_promo_serializer.data})
+      return Response({
+        "message": "invalid",
+        "data": update_promo_serializer.data,
+        "errors": update_promo_serializer.errors,
+      }, status=status.HTTP_400_BAD_REQUEST)
 
 
 class CommentedAccountsAPIView(views.APIView):
@@ -165,7 +199,13 @@ class CommentedAccountsAPIView(views.APIView):
 
     if commented_accounts_serializer.is_valid():
       promo_username = commented_accounts_serializer.data['promo_username']
-      promo_account = models.Promo_Account.objects.get(promo_username=promo_username)
+      try:
+        promo_account = models.Promo_Account.objects.get(promo_username=promo_username)
+      except Exception as e:
+        return Response({
+          "message": "no promo account corresponding to promo username",
+          "data": promo_username,
+        }, status=status.HTTP_404_NOT_FOUND)
       user = promo_account.user
       commented_on_accounts = request.data['commented_on_accounts']
       for account in request.data['commented_on_accounts']:
@@ -186,9 +226,16 @@ class CommentedAccountsAPIView(views.APIView):
       # subtract number of comments in the list comming in from promo_account.comments_until_sleep
       promo_account_service.subtract_comments_from_comments_until_sleep(promo_username, commented_on_accounts)
 
-      return Response({"message": "saved", "data": commented_accounts_serializer.data})
+      return Response({
+        "message": "saved",
+        "data": commented_accounts_serializer.data,
+      }, status=status.HTTP_200_OK)
     else:
-      return Response({"message": "invalid", "data": commented_accounts_serializer.data})
+      return Response({
+        "message": "invalid",
+        "data": commented_accounts_serializer.data,
+        "errors": commented_accounts_serializer.errors,
+      }, status=status.HTTP_400_BAD_REQUEST)
 
 class AuthenticationAPIView(views.APIView):
   '''An APIView for authenticating users'''
@@ -217,7 +264,10 @@ class AuthenticationAPIView(views.APIView):
       user_username = user_service.authenticate_user(user_email, user_password)
       if user_username is None:
         # did not pass authentication
-        return Response({"message": "invalid credentials", "authenticated": False})
+        return Response({
+          "message": "invalid credentials",
+          "authenticated": False
+        }, status=status.HTTP_400_BAD_REQUEST)
       else:
         auth_token = user_service.generate_token(user_username)
         return Response({
@@ -225,9 +275,13 @@ class AuthenticationAPIView(views.APIView):
           "authenticated": True,
           "data": user_username,
           "token": auth_token,
-        })
+        }, status=status.HTTP_200_OK)
     else:
-      return Response({"message": "invalid", "data": auth_serializer.data})
+      return Response({
+        "message": "invalid",
+        "data": auth_serializer.data,
+        "errors": auth_serializer.errors,
+      }, status=status.HTTP_400_BAD_REQUEST)
 
 class TokenIdentityAPIView(views.APIView):
   '''Used to get the identity corresponding to a given token'''
@@ -245,17 +299,24 @@ class TokenIdentityAPIView(views.APIView):
 
     if token_serializer.is_valid():
       user_token = token_serializer.data['token']
-      (user_username, user_email)  = user_service.get_identity_from_token(user_token)
+      try:
+        (user_username, user_email)  = user_service.get_identity_from_token(user_token)
+      except Exception as e:
+        return Response({
+          "message": "no valid token matching given token",
+          "data": token_serializer.data,
+        }, status=status.HTTP_404_NOT_FOUND)
       return Response({
         "message": "user identity",
         "username": user_username,
         "email": user_email
-      })
+      }, status=status.HTTP_200_OK)
     else:
       return Response({
         "message": "invalid",
         "data": token_serializer.data,
-        "errors": token_serializer._errors})
+        "errors": token_serializer._errors
+      }, status=status.HTTP_400_BAD_REQUEST)
 
 class ActivateAPIView(views.APIView):
   '''An APIView for activating promo accounts'''
@@ -263,19 +324,76 @@ class ActivateAPIView(views.APIView):
   class_serializers = serializers.PromoUsernameSerializer
 
   def post(self, request, format=None):
+    '''
+      expects the following body:
+
+      {
+        "promo_username": "upcomingstreetwearfashion"
+      }
+    '''
+
+    activation_serializer = serializers.PromoUsernameSerializer(data=request.data)
+
+    if activation_serializer.is_valid():
+      try:
+        promo_username = request.data['promo_username']
+        promo_is_disabled = promo_account_service.promo_is_disabled(promo_username)
+        promo_is_under_review = promo_account_service.promo_is_under_review(promo_username)
+        promo_is_queued = promo_account_service.promo_is_queued(promo_username)
+      except Exception as e:
+        return Response({
+          "message": "can't find promo account corresponding to promo username",
+          "data": promo_username,
+        }, status=status.HTTP_404_NOT_FOUND)
+      if promo_is_disabled:
+        return Response({
+          "message": "promo is disabled",
+          "data": activation_serializer.data,
+        }, status=status.HTTP_200_OK)
+      if promo_is_under_review:
+        return Response({
+          "message": "promo is under review",
+          "data": activation_serializer.data
+        }, status=status.HTTP_200_OK)
+      if promo_is_queued:
+        promo_account_service.activate_promo_account(promo_username)
+        return Response({
+          "message": "activated",
+          "data": activation_serializer.data
+        }, status=status.HTTP_200_OK)
+      else:
+        promo_account_service.activate_and_queue_promo_account(promo_username)
+        return Response({
+          "message": "activated and queued",
+          "data": activation_serializer.data
+        }, status=status.HTTP_200_OK)
+    else:
+      return Response({
+        "message": "invalid",
+        "data": activation_serializer.data,
+        "errors": activation_serializer.errors,
+      }, status=status.HTTP_400_BAD_REQUEST)
+
+  def post2(self, request, format=None):
     '''expects a promo_username in the body'''
 
     activation_serializer = serializers.PromoUsernameSerializer(data=request.data)
 
     if activation_serializer.is_valid():
       promo_username = request.data['promo_username']
-      promo_account = models.Promo_Account.objects.get(promo_username= promo_username)
+      try:
+        promo_account = models.Promo_Account.objects.get(promo_username= promo_username)
+      except Exception as e:
+        return Response({
+          "message": "can't find promo account corresponding to promo username",
+          "data": promo_username,
+        }, status=status.HTTP_404_NOT_FOUND)
       is_disabled = promo_account_service.promo_is_disabled(promo_username)
       if is_disabled:
         return Response({
           "message": "promo is disabled",
           "data": activation_serializer.data,
-        })
+        }, status=status.HTTP_200_OK)
       if not promo_account.under_review:
         if not promo_account.is_queued:
           print(f'adding {promo_username} to the queue')
@@ -287,11 +405,21 @@ class ActivateAPIView(views.APIView):
         elif not promo_account.activated:
           promo_account.activated = True
           promo_account.save()
-        return Response({"message": "activated", "data": activation_serializer.data})
+        return Response({
+          "message": "activated",
+          "data": activation_serializer.data
+        }, status=status.HTTP_200_OK)
       else:
-        return Response({"message": "under review", "data": activation_serializer.data})
+        return Response({
+          "message": "under review",
+          "data": activation_serializer.data
+        }, status=status.HTTP_200_OK)
     else:
-      return Response({"message": "invalid", "data": activation_serializer.data})
+      return Response({
+        "message": "invalid",
+        "data": activation_serializer.data,
+        "errors": activation_serializer.errors,
+      }, status=status.HTTP_400_BAD_REQUEST)
 
 class DeactivateAPIView(views.APIView):
   '''An APIView for deactivating promo accounts'''
@@ -307,11 +435,20 @@ class DeactivateAPIView(views.APIView):
       try:
         promo_account_service.deactivate_promo_account(promo_username)
       except Exception as e:
-        return Response({"message": "no promo corresponding to promo username", "data": promo_username})
+        return Response({
+          "message": "no promo corresponding to promo username",
+          "data": promo_username
+        }, status=status.HTTP_404_NOT_FOUND)
 
-      return Response({"message": "deactivated", "data": deactivation_serializer.data})
+      return Response({
+        "message": "deactivated",
+        "data": deactivation_serializer.data
+      }, status=status.HTTP_200_OK)
     else:
-      return Response({"message": "invalid", "data": deactivation_serializer.data})
+      return Response({
+        "message": "invalid",
+        "data": deactivation_serializer.data
+      }, status=status.HTTP_400_BAD_REQUEST)
 
 class DeactivateAllAPIView(views.APIView):
   '''Used to deactivate all promo accounts'''
@@ -319,7 +456,9 @@ class DeactivateAllAPIView(views.APIView):
   def post(self, request, format=None):
     '''expects no body'''
     promo_account_service.deactivate_all_promo_accounts()
-    return Response({"message": "Deactivated all promo accounts"})
+    return Response({
+      "message": "Deactivated all promo accounts"
+    }, status=status.HTTP_200_OK)
 
 class DequeuePromoAccountAPIView(views.APIView):
   '''Take a promo account out of the commenting queue'''
@@ -341,10 +480,16 @@ class DequeuePromoAccountAPIView(views.APIView):
       dequeued_promo_username = request.data.get('promo_username')
       promo_account_service.dequeue_promo_account(dequeued_promo_username)
 
-      return Response({"message": "Dequeued account", "data": dequeued_promo_username})
+      return Response({
+        "message": "Dequeued account",
+        "data": dequeued_promo_username
+      }, status=status.HTTP_200_OK)
 
     else:
-      return Response({"message": "invalid", "data": dequeue_serializer.data})
+      return Response({
+        "message": "invalid",
+        "data": dequeue_serializer.data
+      }, status=status.HTTP_400_BAD_REQUEST)
 
 
 class SetProxyAPIView(views.APIView):
@@ -374,18 +519,26 @@ class SetProxyAPIView(views.APIView):
           "message": "invalid",
           "data": "no promo account corresponding to name: "
           + proxy_review_serializer.data['promo_username']
-        })
+        }, status=status.HTTP_404_NOT_FOUND)
 
       for account in models.Promo_Account.objects.all():
         if account.proxy == proxy_review_serializer.data['proxy']:
-          return Response({"message": "proxy already in use",
-          "data": "proxy being used by promo: " + account.promo_username})
+          return Response({
+            "message": "proxy already in use",
+            "data": "proxy being used by promo: " + account.promo_username
+          }, status=status.HTTP_206_PARTIAL_CONTENT)
       reveiwing_promo_account.proxy = proxy_review_serializer.data['proxy']
       reveiwing_promo_account.under_review = False
       reveiwing_promo_account.save()
-      return Response({"message": "reviewed and updated proxy", "data": proxy_review_serializer.data})
+      return Response({
+        "message": "reviewed and updated proxy",
+        "data": proxy_review_serializer.data
+      }, status=status.HTTP_200_OK)
     else:
-      return Response({"message": "invalid", "data": proxy_review_serializer.data})
+      return Response({
+        "message": "invalid",
+        "data": proxy_review_serializer.data
+      }, status=status.HTTP_400_BAD_REQUEST)
 
 class UserPromoAccountsAPIView(views.APIView):
   '''Used to get a list of the promo accounts associated with a user'''
@@ -405,16 +558,24 @@ class UserPromoAccountsAPIView(views.APIView):
       try:
         user = models.User.objects.get(username=user_serializer.data['username'])
       except Exception as e:
-        return Response({"message": "invalid",
-         "data": "No user corresponding to username: " + user_serializer.data['username'] })
+        return Response({
+          "message": "invalid",
+          "data": "No user corresponding to username: " + user_serializer.data['username']
+        }, status=status.HTTP_404_NOT_FOUND)
       promo_accounts = []
 
       for promo_account in user.promo_account_set.all():
         promo_accounts.append(str(promo_account))
 
-      return Response({"message": "promo accounts", "data": promo_accounts})
+      return Response({
+        "message": "promo accounts",
+        "data": promo_accounts
+      }, status=status.HTTP_200_OK)
     else:
-      return Response({"message": "invalid", "data": user_serializer.data})
+      return Response({
+        "message": "invalid",
+        "data": user_serializer.data
+      }, status=status.HTTP_400_BAD_REQUEST)
 
 class ResetPasswordAPIView(views.APIView):
   '''Used to reset the password for a growth automation user'''
@@ -441,10 +602,18 @@ class ResetPasswordAPIView(views.APIView):
         user_manager.set_password(user_username, new_password)
       except Exception as e:
         print(e)
-        return Response({"message": "Issue changing password"})
-      return Response({"message": "password updated", "data": user_username})
+        return Response({
+          "message": "Issue changing password"
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+      return Response({
+        "message": "password updated",
+        "data": user_username
+      }, status=status.HTTP_200_OK)
     else:
-      return Response({"message": "invalid", "data": reset_password_serializer.data})
+      return Response({
+        "message": "invalid",
+        "data": reset_password_serializer.data
+      }, status=status.HTTP_400_BAD_REQUEST)
 
 class SetCommentPoolAPIView(views.APIView):
   '''
@@ -470,16 +639,26 @@ class SetCommentPoolAPIView(views.APIView):
       user_username = request.data['user_username']
       using_custom_comments = request.data['using_custom_comments']
       if not user_service.user_is_custom_comment_eligible(user_username) and using_custom_comments:
-        return Response({"message": "user is not eligible for custom comments",
-                         "data": update_comment_pool_serializer.data})
+        return Response({
+          "message": "user is not eligible for custom comments",
+          "data": update_comment_pool_serializer.data
+        }, status=status.HTTP_206_PARTIAL_CONTENT)
       try:
         user_service.update_user_comment_pool_setting(user_username, using_custom_comments)
       except Exception as e:
-        return Response({"message": "Couldn't find a user corresponding to username",
-        "data": update_comment_pool_serializer.data})
-      return Response({"message": "updated", "data": update_comment_pool_serializer.data})
+        return Response({
+          "message": "Couldn't find a user corresponding to username",
+          "data": update_comment_pool_serializer.data
+        }, status=status.HTTP_404_NOT_FOUND)
+      return Response({
+        "message": "updated",
+        "data": update_comment_pool_serializer.data
+      }, status=status.HTTP_200_OK)
     else:
-      return Response({"message": "invalid", "data": update_comment_pool_serializer.data})
+      return Response({
+        "message": "invalid",
+        "data": update_comment_pool_serializer.data
+      }, status=status.HTTP_400_BAD_REQUEST)
 
 class CustomCommentPoolAPIView(views.APIView):
   '''
@@ -507,16 +686,20 @@ class CustomCommentPoolAPIView(views.APIView):
           custom_comments = user_service.get_user_custom_comment_pool(user_username)
           custom_comments_serializer = serializers.GetCustomCommentSerializer(custom_comments, many=True)
 
-          return Response({"message": user_username + "'s comment pool",
-                            "data": custom_comments_serializer.data})
+          return Response({
+            "message": user_username + "'s comment pool",
+            "data": custom_comments_serializer.data
+          }, status=status.HTTP_200_OK)
         except Exception as e:
           print(e)
-          return Response({"message": "could not find comment pool corresponding to user",
-                           "data": user_username})
+          return Response({
+            "message": "could not find comment pool corresponding to user",
+            "data": user_username
+          }, status=status.HTTP_404_NOT_FOUND)
     except Exception as e:
       custom_comments = self.get_queryset()
       custom_comments_serializer = serializers.GetCustomCommentSerializer(custom_comments, many=True)
-      return Response(custom_comments_serializer.data)
+      return Response(custom_comments_serializer.data, status=status.HTTP_200_OK)
 
 
   class_serializer = serializers.AddCustomCommentsSerializer
@@ -540,16 +723,27 @@ class CustomCommentPoolAPIView(views.APIView):
       comments_are_unique = user_service.comments_are_unique(user_username, new_custom_comments)
       if not comments_are_unique:
         duplicate_comment_text = user_service.get_duplicate_comment(user_username, new_custom_comments)
-        return Response({"message": "Comments are not unique", "data": duplicate_comment_text})
+        return Response({
+          "message": "Comments are not unique",
+          "data": duplicate_comment_text
+        }, status=status.HTTP_400_BAD_REQUEST)
       try:
         user_service.add_to_user_custom_comment_pool(user_username, new_custom_comments)
       except Exception as e:
         print(e)
-        return Response({"message": "Couldn't find a user corresponding to username",
-                         "data": new_comments_serializer.data})
-      return Response({"message": "updated", "data": new_comments_serializer.data})
+        return Response({
+          "message": "Couldn't find a user corresponding to username",
+          "data": new_comments_serializer.data
+        }, status=status.HTTP_404_NOT_FOUND)
+      return Response({
+        "message": "updated",
+        "data": new_comments_serializer.data
+        }, status=status.HTTP_200_OK)
     else:
-      return Response({"message": "invalid", "data": new_comments_serializer.data})
+      return Response({
+        "message": "invalid",
+        "data": new_comments_serializer.data
+      }, status=status.HTTP_400_BAD_REQUEST)
 
   def delete(self, request, format=None):
     '''
@@ -571,11 +765,19 @@ class CustomCommentPoolAPIView(views.APIView):
         if not user_service.user_is_custom_comment_eligible(user_username):
           user_service.update_user_comment_pool_setting(user_username, False)
       except Exception as e:
-        return Response({"message": "Couldn't locate custom comment with that text for given user",
-                         "data": delete_custom_comment_serializer.data})
-      return Response({"message": "deleted", "data": delete_custom_comment_serializer.data})
+        return Response({
+          "message": "Couldn't locate custom comment with that text for given user",
+          "data": delete_custom_comment_serializer.data
+        }, status=status.HTTP_404_NOT_FOUND)
+      return Response({
+        "message": "deleted",
+        "data": delete_custom_comment_serializer.data
+        }, status=status.HTTP_200_OK)
     else:
-      return Response({"message": "invalid", "data": delete_custom_comment_serializer.data})
+      return Response({
+        "message": "invalid",
+        "data": delete_custom_comment_serializer.data
+      }, status=status.HTTP_400_BAD_REQUEST)
 
   def put(self, request, format=None):
     '''
@@ -598,11 +800,19 @@ class CustomCommentPoolAPIView(views.APIView):
         user_service.update_custom_comment_text(user_username, old_custom_comment_text,
                                                           new_custom_comment_text)
       except Exception as e:
-        return Response({"message": "Couldn't find comment to update from given user",
-                        "data": update_custom_comment_serializer.data})
-      return Response({"message": "updated", "data": update_custom_comment_serializer.data})
+        return Response({
+          "message": "Couldn't find comment to update from given user",
+          "data": update_custom_comment_serializer.data
+        }, status=status.HTTP_404_NOT_FOUND)
+      return Response({
+        "message": "updated",
+        "data": update_custom_comment_serializer.data
+      }, status=status.HTTP_200_OK)
     else:
-      return Response({"message": "invalid", "data": update_custom_comment_serializer.data})
+      return Response({
+        "message": "invalid",
+        "data": update_custom_comment_serializer.data
+      }, status=status.HTTP_400_BAD_REQUEST)
 
 class ForgotPasswordAPIView(views.APIView):
 
@@ -645,12 +855,16 @@ class ForgotPasswordAPIView(views.APIView):
 
         smtp.sendmail('genuineapparelsuccess@gmail.com', email, msg)
 
-      return Response({"message": "Reset Password Email Sent", "data": forgot_password_serializer.data})
+      return Response({
+        "message": "Reset Password Email Sent",
+        "data": forgot_password_serializer.data
+      }, status=status.HTTP_200_OK)
     else:
       return Response({
         "message": "invalid",
         "data": forgot_password_serializer.data,
-        "errors": forgot_password_serializer.errors})
+        "errors": forgot_password_serializer.errors
+      }, status=status.HTTP_400_BAD_REQUEST)
 
 class ResetPasswordWithTokenAPIView(views.APIView):
   '''Handles requests to reset a user's password with ResetPasswordToken authentication'''
@@ -669,16 +883,16 @@ class ResetPasswordWithTokenAPIView(views.APIView):
         return Response({
           "message": "user username",
           "data": user_username
-        })
+        }, status=status.HTTP_200_OK)
       except Exception as e:
         return Response({
           "message": "no user corresponding to reset password token"
-        })
+        }, status=status.HTTP_404_NOT_FOUND)
     except Exception as e:
       return Response({
         "message": "invalid",
         "data": "must include a reset password token"
-      })
+      }, status=status.HTTP_400_BAD_REQUEST)
 
 
   def post(self, request, format=None):
@@ -701,7 +915,7 @@ class ResetPasswordWithTokenAPIView(views.APIView):
       except Exception as e:
         return Response({
           "message": "token doesn't exist or has already been used"
-        })
+        }, status=status.HTTP_404_NOT_FOUND)
       if is_valid_reset_password_token:
         user_username = user_service.get_user_from_reset_password_token(reset_password_token)
         user_service.reset_user_password(user_username, new_password)
@@ -709,17 +923,18 @@ class ResetPasswordWithTokenAPIView(views.APIView):
         return Response({
           "message": "password reset",
           "data": reset_password_serializer.data
-        })
+        }, status=status.HTTP_200_OK)
       else:
         return Response({
           "message": "Token is invalid",
           "data": reset_password_serializer.data
-        })
+        }, status=status.HTTP_400_BAD_REQUEST)
     else:
       return Response({
         "message": "invalid",
         "data": reset_password_serializer.data,
-        "errors": reset_password_serializer.errors})
+        "errors": reset_password_serializer.errors
+      }, status=status.HTTP_400_BAD_REQUEST)
 
 class UserStatisticsAPIView(views.APIView):
   ''' Used for getting the comment statistics associated with a user '''
@@ -740,17 +955,17 @@ class UserStatisticsAPIView(views.APIView):
         return Response({
           "message": "statistics for " + user_username,
           "data": user_stats
-        })
+        }, status=status.HTTP_200_OK)
       except Exception as e:
         return Response({
           "message": "no user corresponding to username",
           "data": user_username
-        })
+        }, status=status.HTTP_404_NOT_FOUND)
     except Exception as e:
       return Response({
         "message": "invalid",
         "data": "No user provided"
-      })
+      }, status=status.HTTP_400_BAD_REQUEST)
 
 class LikingAPIView(views.APIView):
   '''Used to get/set information about promo account liking'''
@@ -770,17 +985,17 @@ class LikingAPIView(views.APIView):
         return Response({
           "message": "promo account liking status",
           "data": is_liking
-        })
+        }, status=status.HTTP_200_OK)
       except Exception as e:
         return Response({
-          "message": "invalid",
-          "data": "no promo account corresponds to " + promo_username
-        })
+          "message": "no promo account corresponds to promo username",
+          "data":  promo_username
+        }, status=status.HTTP_404_NOT_FOUND)
     except Exception as e:
       return Response({
         "message": "invalid",
         "data": "no promo_username provided"
-      })
+      }, status=status.HTTP_400_BAD_REQUEST)
 
   def put(self, request, format=None):
     '''
@@ -804,18 +1019,18 @@ class LikingAPIView(views.APIView):
         return Response({
           "message": "promo liking status set",
           "data": is_liking
-        })
+        }, status=status.HTTP_200_OK)
       except Exception as e:
         return Response({
           "message": "invalid",
           "data": "no promo account corresponds to " + promo_username
-        })
+        }, status=status.HTTP_404_NOT_FOUND)
     else:
       return Response({
         "message": "invalid",
         "data": toggle_is_liking_serializer.data,
         "errors": toggle_is_liking_serializer.errors
-      })
+      }, status=status.HTTP_400_BAD_REQUEST)
 
 class DisableAPIView(views.APIView):
   '''Used to disable an account (still queued but can't be activated)'''
@@ -844,7 +1059,7 @@ class DisableAPIView(views.APIView):
         return Response({
           "message": "under review",
           "data": set_disabled_status_serializer.data
-        })
+        }, status=status.HTTP_200_OK)
       try:
         promo_account_service.update_promo_disabled_status(promo_username, is_disabled)
         if is_disabled:
@@ -853,14 +1068,14 @@ class DisableAPIView(views.APIView):
         return Response({
           "message": "no promo account corresponds to " + promo_username,
           "data": set_disabled_status_serializer.data,
-        })
+        }, status=status.HTTP_404_NOT_FOUND)
       return Response({
         "message": "updated promo account disabled status",
         "data": is_disabled
-      })
+      }, status=status.HTTP_200_OK)
     else:
       return Response({
         "message": "invalid",
         "data": set_disabled_status_serializer.data,
         "errors": set_disabled_status_serializer.errors,
-      })
+      }, status=status.HTTP_400_BAD_REQUEST)

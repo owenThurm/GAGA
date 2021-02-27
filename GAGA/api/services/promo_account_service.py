@@ -1,8 +1,16 @@
 from ..models import Promo_Account, User
 from .user_service import UserService
+from .. import serializers
 from random import randint
+from django.utils.functional import cached_property
 
 class PromoAccountService:
+
+  @cached_property
+  def queue_functions(self):
+    from .. import utils
+
+    return utils
 
   def _get_promo_account(self, promo_username):
     return Promo_Account.objects.get(promo_username=promo_username)
@@ -15,6 +23,35 @@ class PromoAccountService:
 
   def get_promo_password(self, promo_username):
     return self._get_promo_account(promo_username).promo_password
+
+  def _get_promo_set(self):
+    return Promo_Account.objects.all()
+
+  def get_promo_set(self):
+    promo_set = self._get_promo_set()
+    promo_set_data = serializers.GetPromoSerializer(promo_set, many=True).data
+    return promo_set_data
+
+  def get_promo_account_data(self, promo_username):
+    promo_account = self._get_promo_account(promo_username)
+    promo_total_comments = self.get_promo_total_comments_num(promo_username)
+    promo_comment_level = self.get_promo_comment_level(promo_username)
+    promo_data = {
+      "promo_username": promo_account.promo_username,
+      "promo_is_activated": promo_account.activated,
+      "promo_proxy": promo_account.proxy,
+      "promo_target_accounts": promo_account.target_accounts,
+      "promo_owner": promo_account.user.username,
+      "promo_comment_rounds_today": promo_account.comment_rounds_today,
+      "promo_is_queued": promo_account.is_queued,
+      "promo_under_review": promo_account.under_review,
+      "promo_comments_until_sleep": promo_account.comments_until_sleep,
+      "promo_is_liking": promo_account.is_liking,
+      "promo_total_comments": promo_total_comments,
+      "promo_comment_level": promo_comment_level,
+      "promo_is_disabled": promo_account.is_disabled,
+    }
+    return promo_data
 
   def get_promo_targets(self, promo_username):
     return self._get_promo_account(promo_username).target_accounts
@@ -207,3 +244,12 @@ class PromoAccountService:
   def promo_is_under_review(self, promo_username):
     promo_account = self._get_promo_account(promo_username)
     return promo_account.under_review
+
+  def activate_and_queue_promo_account(self, promo_username):
+    promo_account = self._get_promo_account(promo_username)
+    promo_account.activated = True
+    if not promo_account.is_queued:
+      self.queue_functions.add_to_queue(promo_username)
+      promo_account.is_queued = True
+    promo_account.save()
+    return promo_username
