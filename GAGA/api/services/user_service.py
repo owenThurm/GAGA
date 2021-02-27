@@ -1,4 +1,4 @@
-from ..models import User, CustomComment, ResetPasswordToken, UserManager
+from ..models import User, CustomComment, ResetPasswordToken, UserManager, CommentFilter
 from django.contrib.auth import authenticate
 from rest_framework.authtoken.models import Token
 from django.utils.crypto import get_random_string
@@ -233,11 +233,27 @@ class UserService():
     promo_account_comment_level = self.promo_account_service.get_promo_comment_level(promo_account)
     return (promo_account, promo_account_comment_level)
 
+  def _get_user_comment_filter(self, user):
+    comment_filter = CommentFilter.objects.get(user=user)
+    return {
+      'account_min_followers': comment_filter.account_min_followers,
+      'account_max_followers': comment_filter.account_max_followers,
+      'account_min_number_following': comment_filter.account_min_number_following,
+      'account_max_number_following': comment_filter.account_max_number_following,
+      'account_description_avoided_key_phrases': comment_filter.account_description_avoided_key_phrases,
+      'post_min_number_of_comments': comment_filter.post_min_number_of_comments,
+      'post_max_number_of_comments': comment_filter.post_max_number_of_comments,
+      'post_min_number_of_likes': comment_filter.post_min_number_of_likes,
+      'post_max_number_of_likes': comment_filter.post_max_number_of_likes,
+      'post_description_avoided_key_phrases': comment_filter.post_description_avoided_key_phrases,
+    }
+
   def get_user_data(self, user_username):
     user = self._get_user_by_username(user_username)
     user_promo_accounts = self.get_user_promo_accounts(user_username)
     user_total_comments = self.get_user_all_time_num_comments(user_username)
     user_custom_comments = self.get_user_custom_comments_text(user_username)
+    user_comment_filter = self._get_user_comment_filter(user)
     user_data = {
       "user_username": user.username,
       "user_email": user.email,
@@ -252,6 +268,7 @@ class UserService():
       "user_using_custom_coments": user.using_custom_comments,
       "user_total_comments": user_total_comments,
       "user_custom_comment_pool": user_custom_comments,
+      "user_comment_filter": user_comment_filter,
       "user_promo_accounts": user_promo_accounts,
     }
     return user_data
@@ -286,3 +303,47 @@ class UserService():
   def get_username_from_email(self, user_email):
     user = self._get_user_by_email(user_email)
     return user.username
+
+  def update_user_comment_filter(self, user_username, new_comment_filter):
+    user = self._get_user_by_username(user_username)
+    comment_filter = CommentFilter.objects.get(user=user)
+    comment_filter_object = self._get_user_comment_filter(user)
+    if comment_filter_object != new_comment_filter:
+      comment_filter.account_min_followers = new_comment_filter['account_min_followers']
+      comment_filter.account_max_followers = new_comment_filter['account_max_followers']
+      comment_filter.account_min_number_following = new_comment_filter['account_min_number_following']
+      comment_filter.account_max_number_following = new_comment_filter['account_max_number_following']
+      comment_filter.account_description_avoided_key_phrases = new_comment_filter['account_description_avoided_key_phrases']
+      comment_filter.post_min_number_of_comments = new_comment_filter['post_min_number_of_comments']
+      comment_filter.post_max_number_of_comments = new_comment_filter['post_max_number_of_comments']
+      comment_filter.post_min_number_of_likes = new_comment_filter['post_min_number_of_likes']
+      comment_filter.post_max_number_of_likes = new_comment_filter['post_max_number_of_likes']
+      comment_filter.post_description_avoided_key_phrases = new_comment_filter['post_description_avoided_key_phrases']
+      comment_filter.save()
+    return new_comment_filter
+
+  def get_user_comment_filter(self, user_username):
+    user = self._get_user_by_username(user_username)
+    comment_filter_object = CommentFilter.objects.get(user=user)
+    return {
+      'account_min_followers': comment_filter_object.account_min_followers,
+      'account_max_followers': comment_filter_object.account_max_followers,
+      'account_min_number_following': comment_filter_object.account_min_number_following,
+      'account_max_number_following': comment_filter_object.account_max_number_following,
+      'account_description_avoided_key_phrases': comment_filter_object.account_description_avoided_key_phrases,
+      'post_min_number_of_comments': comment_filter_object.post_min_number_of_comments,
+      'post_max_number_of_comments': comment_filter_object.post_max_number_of_comments,
+      'post_min_number_of_likes': comment_filter_object.post_min_number_of_likes,
+      'post_max_number_of_likes': comment_filter_object.post_max_number_of_likes,
+      'post_description_avoided_key_phrases': comment_filter_object.post_description_avoided_key_phrases,
+    }
+
+  def create_default_comment_filter_for_user(self, user_username):
+    #no-op if a user already has a comment filter
+    user = self._get_user_by_username(user_username)
+    try:
+      comment_filter = CommentFilter.objects.get(user=user)
+    except Exception as e:
+      comment_filter = CommentFilter(user=user)
+      comment_filter.save()
+    return comment_filter

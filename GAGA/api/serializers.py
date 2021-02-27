@@ -147,3 +147,24 @@ class PromoTargetsSerializer(serializers.Serializer):
 
   promo_username = serializers.CharField(max_length=30)
   promo_target_accounts_list = serializers.ListSerializer(child=serializers.CharField(max_length=30), allow_empty=False)
+
+class CommentFilterSerializer(serializers.Serializer):
+  """Serializes a comment filter object"""
+
+  account_min_followers = serializers.IntegerField()
+  account_max_followers = serializers.IntegerField()
+  account_min_number_following = serializers.IntegerField()
+  account_max_number_following = serializers.IntegerField()
+  account_description_avoided_key_phrases = serializers.ListSerializer(child=serializers.CharField(max_length=100), allow_empty=True)
+  post_min_number_of_comments = serializers.IntegerField()
+  post_max_number_of_comments = serializers.IntegerField()
+  post_min_number_of_likes = serializers.IntegerField()
+  post_max_number_of_likes = serializers.IntegerField()
+  post_description_avoided_key_phrases = serializers.ListSerializer(child=serializers.CharField(max_length=100), allow_empty=True)
+
+
+class UserCommentFilterSerializer(serializers.Serializer):
+  """Serializes a comment filter and a user username"""
+
+  user_username = serializers.CharField(max_length=30)
+  comment_filter = CommentFilterSerializer(source='*')

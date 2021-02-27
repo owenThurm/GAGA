@@ -28,7 +28,6 @@ class UserAPIView(views.APIView):
         try:
           user_data = user_service.get_user_data(user_username)
         except Exception as e:
-          print(e)
           return Response({
             "message": "No user corresponding to username: " + user_username,
           }, status=status.HTTP_404_NOT_FOUND)
@@ -45,7 +44,6 @@ class UserAPIView(views.APIView):
           user_username = user_service.get_username_from_email(user_email)
           user_data = user_service.get_user_data(user_username)
         except Exception as e:
-          print(e)
           return Response({
             "message": "No user corresponding to email: " + user_email,
           }, status=status.HTTP_404_NOT_FOUND)
@@ -644,7 +642,6 @@ class CustomCommentPoolAPIView(views.APIView):
             "data": custom_comments_serializer.data
           }, status=status.HTTP_200_OK)
         except Exception as e:
-          print(e)
           return Response({
             "message": "could not find comment pool corresponding to user",
             "data": user_username
@@ -683,7 +680,6 @@ class CustomCommentPoolAPIView(views.APIView):
       try:
         user_service.add_to_user_custom_comment_pool(user_username, new_custom_comments)
       except Exception as e:
-        print(e)
         return Response({
           "message": "Couldn't find a user corresponding to username",
           "data": new_comments_serializer.data
@@ -1073,4 +1069,89 @@ class PromoTargetsAPIView(views.APIView):
         "message": "invalid",
         "data": update_targets_serializer.data,
         "errors": update_targets_serializer.errors,
+      }, status=status.HTTP_400_BAD_REQUEST)
+
+class CommentFilterAPIView(views.APIView):
+  '''An APIView for comment filters'''
+
+
+  def post(self, request, format=None):
+    '''
+      Used to create comment filter for a user
+
+      expects the following body
+
+      {
+        "user_username": "owenthurm"
+      }
+    '''
+
+    create_comment_filter_serializer = serializers.UserUsernameSerializer(data=request.data)
+
+    if create_comment_filter_serializer.is_valid():
+      #create default comment filter for user
+      user_username = request.data['user_username']
+      try:
+        user_service.create_default_comment_filter_for_user(user_username)
+      except Exception as e:
+        return Response({
+          "message": "no user corresponding to username",
+          "data": create_comment_filter_serializer.data,
+        }, status=status.HTTP_404_NOT_FOUND)
+      return Response({
+        "message": "created default comment filter for user",
+        "data": create_comment_filter_serializer.data,
+      }, status=status.HTTP_200_OK)
+    else:
+      return Response({
+        "message": "invalid",
+        "data": create_comment_filter_serializer.data,
+        "errors": create_comment_filter_serializer.errors,
+      }, status=status.HTTP_400_BAD_REQUEST)
+
+  def put(self, request, format=None):
+    '''
+      Used to update the comment filter for a user
+
+      expects the following body
+
+      {
+        "user_username": "owenthurm",
+        "comment_filter": {
+          account_min_followers: 10,
+          account_max_followers: 10000,
+          account_min_number_following: 10,
+          account_max_number_following: 5000,
+          account_description_avoided_key_phrases: ["kill", "hate", "he died"],
+          post_min_number_of_comments: 0,
+          post_max_number_of_comments: 100,
+          post_min_number_of_likes: 5,
+          post_max_number_of_likes: 12000,
+          post_description_avoided_key_phrases: ["something terrible happened", "dead"],
+        }
+      }
+    '''
+
+    comment_filter_serializer = serializers.UserCommentFilterSerializer(data=request.data)
+
+    if comment_filter_serializer.is_valid():
+      #update comment filter
+      user_username = request.data['user_username']
+      new_comment_filter = request.data['comment_filter']
+      try:
+        user_service.update_user_comment_filter(user_username, new_comment_filter)
+      except Exception as e:
+        return Response({
+          "message": "no user corresponding to username",
+          "data": comment_filter_serializer.data,
+        }, status=status.HTTP_404_NOT_FOUND)
+      return Response({
+        "message": "updated user's comment filter",
+        "data": comment_filter_serializer.data,
+      }, status=status.HTTP_200_OK)
+    else:
+      return Response({
+        "message": "invalid",
+        "data": comment_filter_serializer.data,
+        "errors": comment_filter_serializer.errors,
       }, status=status.HTTP_400_BAD_REQUEST)

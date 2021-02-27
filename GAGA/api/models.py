@@ -25,6 +25,10 @@ class UserManager(BaseUserManager):
 
     user.set_password(password)
     user.save(using=self._db)
+
+    user_comment_filter = CommentFilter(user=user)
+    user_comment_filter.save()
+
     return user
 
   def create_superuser(self, email, username, password, location, brand_name='Genuine Apparel'):
@@ -106,3 +110,16 @@ class ResetPasswordToken(models.Model):
   key = models.CharField(max_length=120)
   user = models.ForeignKey(User, on_delete=models.CASCADE)
   valid_until = models.DateTimeField(default=default_start_time)
+
+class CommentFilter(models.Model):
+  user = models.OneToOneField(User, on_delete=models.CASCADE)
+  account_min_followers = models.IntegerField(default=0)
+  account_max_followers = models.IntegerField(default=50000)
+  account_min_number_following = models.IntegerField(default=0)
+  account_max_number_following = models.IntegerField(default=5000)
+  account_description_avoided_key_phrases = ArrayField(models.CharField(max_length=100), default=list)
+  post_min_number_of_comments = models.IntegerField(default=0)
+  post_max_number_of_comments = models.IntegerField(default=500)
+  post_min_number_of_likes = models.IntegerField(default=0)
+  post_max_number_of_likes = models.IntegerField(default=10000)
+  post_description_avoided_key_phrases = ArrayField(models.CharField(max_length=100), default=list)

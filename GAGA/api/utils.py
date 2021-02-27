@@ -34,6 +34,7 @@ def add_to_queue(promo_username):
 def comment_round(promo_username):
 
   if not promo_account_service.promo_is_queued(promo_username):
+    logging.debug(f'dequeueing {promo_username}')
     return
 
   promo_password = promo_account_service.get_promo_password(promo_username)
@@ -47,7 +48,10 @@ def comment_round(promo_username):
   is_liking = promo_account_service.promo_account_is_liking(promo_username)
   is_disabled = promo_account_service.promo_is_disabled(promo_username)
   promo_target_accounts_list = promo_account_service.get_promo_targets(promo_username)
-
+  try:
+    user_comment_filter = user_service.get_user_comment_filter(promo_owner_username)
+  except Exception as e:
+    user_comment_filter = None
   if(user_service.user_is_using_custom_comment_pool(promo_owner_username)):
     account_custom_comment_pool = user_service.get_user_custom_comments_text(promo_owner_username)
   else:
@@ -64,6 +68,7 @@ def comment_round(promo_username):
     'custom_comments': account_custom_comment_pool,
     'num_comments': number_of_comments_to_do,
     'is_liking': is_liking,
+    'comment_filter': user_comment_filter,
   }
 
   logging.debug(f'''Comment round for {promo_username}, targeting {promo_target},
