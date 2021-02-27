@@ -141,3 +141,9 @@ class DisabledSerializer(serializers.Serializer):
 
   promo_username = serializers.CharField(max_length=30)
   is_disabled = serializers.BooleanField()
+
+class PromoTargetsSerializer(serializers.Serializer):
+  """Serializes a body with a list of promo targets in it, and a promo username"""
+
+  promo_username = serializers.CharField(max_length=30)
+  promo_target_accounts_list = serializers.ListSerializer(child=serializers.CharField(max_length=30), allow_empty=False)

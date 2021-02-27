@@ -253,3 +253,10 @@ class PromoAccountService:
       promo_account.is_queued = True
     promo_account.save()
     return promo_username
+
+  def set_promo_target_accounts_list(self, promo_username, promo_target_accounts_list):
+    promo_account = self._get_promo_account(promo_username)
+    if promo_account.target_accounts != promo_target_accounts_list:
+      promo_account.target_accounts = promo_target_accounts_list
+      promo_account.save()
+    return promo_target_accounts_list

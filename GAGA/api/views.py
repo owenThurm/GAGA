@@ -374,53 +374,6 @@ class ActivateAPIView(views.APIView):
         "errors": activation_serializer.errors,
       }, status=status.HTTP_400_BAD_REQUEST)
 
-  def post2(self, request, format=None):
-    '''expects a promo_username in the body'''
-
-    activation_serializer = serializers.PromoUsernameSerializer(data=request.data)
-
-    if activation_serializer.is_valid():
-      promo_username = request.data['promo_username']
-      try:
-        promo_account = models.Promo_Account.objects.get(promo_username= promo_username)
-      except Exception as e:
-        return Response({
-          "message": "can't find promo account corresponding to promo username",
-          "data": promo_username,
-        }, status=status.HTTP_404_NOT_FOUND)
-      is_disabled = promo_account_service.promo_is_disabled(promo_username)
-      if is_disabled:
-        return Response({
-          "message": "promo is disabled",
-          "data": activation_serializer.data,
-        }, status=status.HTTP_200_OK)
-      if not promo_account.under_review:
-        if not promo_account.is_queued:
-          print(f'adding {promo_username} to the queue')
-          add_to_queue(promo_username)
-          promo_account.is_queued = True
-          if not promo_account.activated:
-            promo_account.activated = True
-          promo_account.save()
-        elif not promo_account.activated:
-          promo_account.activated = True
-          promo_account.save()
-        return Response({
-          "message": "activated",
-          "data": activation_serializer.data
-        }, status=status.HTTP_200_OK)
-      else:
-        return Response({
-          "message": "under review",
-          "data": activation_serializer.data
-        }, status=status.HTTP_200_OK)
-    else:
-      return Response({
-        "message": "invalid",
-        "data": activation_serializer.data,
-        "errors": activation_serializer.errors,
-      }, status=status.HTTP_400_BAD_REQUEST)
-
 class DeactivateAPIView(views.APIView):
   '''An APIView for deactivating promo accounts'''
 
@@ -1078,4 +1031,46 @@ class DisableAPIView(views.APIView):
         "message": "invalid",
         "data": set_disabled_status_serializer.data,
         "errors": set_disabled_status_serializer.errors,
+      }, status=status.HTTP_400_BAD_REQUEST)
+
+class PromoTargetsAPIView(views.APIView):
+  '''
+      An APIView to update the list of targets for a promo,
+      where the first string in the list is the next ig
+      account to be targeted by the promo account.
+  '''
+
+  def put(self, request, format=None):
+    '''
+      used to update the promo targets list
+
+      expects the following body:
+
+      {
+        "promo_username": "upcomingstreetwearfashion",
+        "promo_target_accounts_list": ["nike", "riotsociety", ...]
+      }
+    '''
+
+    update_targets_serializer = serializers.PromoTargetsSerializer(data=request.data)
+
+    if update_targets_serializer.is_valid():
+      promo_username = request.data['promo_username']
+      promo_target_account_list = request.data['promo_target_accounts_list']
+      try:
+        promo_account_service.set_promo_target_accounts_list(promo_username, promo_target_account_list)
+      except Exception as e:
+        return Response({
+          "message": "no promo account corresponding to promo username",
+          "data": update_targets_serializer.data,
+        }, status=status.HTTP_404_NOT_FOUND)
+      return Response({
+        "message": "updated promo targets list",
+        "data": update_targets_serializer.data,
+      }, status=status.HTTP_200_OK)
+    else:
+      return Response({
+        "message": "invalid",
+        "data": update_targets_serializer.data,
+        "errors": update_targets_serializer.errors,
       }, status=status.HTTP_400_BAD_REQUEST)
