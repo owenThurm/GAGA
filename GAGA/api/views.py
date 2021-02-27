@@ -305,7 +305,7 @@ class TokenIdentityAPIView(views.APIView):
         return Response({
           "message": "no valid token matching given token",
           "data": token_serializer.data,
-        }, status=status.HTTP_200_NOT_FOUND)
+        }, status=status.HTTP_200_OK)
       return Response({
         "message": "user identity",
         "username": user_username,
