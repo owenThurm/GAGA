@@ -265,7 +265,7 @@ class AuthenticationAPIView(views.APIView):
         return Response({
           "message": "invalid credentials",
           "authenticated": False
-        }, status=status.HTTP_200_BAD_REQUEST)
+        }, status=status.HTTP_200_OK)
       else:
         auth_token = user_service.generate_token(user_username)
         return Response({
