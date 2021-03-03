@@ -1155,3 +1155,48 @@ class CommentFilterAPIView(views.APIView):
         "data": comment_filter_serializer.data,
         "errors": comment_filter_serializer.errors,
       }, status=status.HTTP_400_BAD_REQUEST)
+
+class LambdaCallbackAPIView(views.APIView):
+  '''An APIView for the lambda to call back after a comment round is over'''
+
+  def post(self, request, format=None):
+    '''
+      Used to add the newly commented on accounts to the user,
+      and set the target accounts list to the newly rotated list.
+
+      expects the following body:
+
+      {
+        "promo_username": "upcomingstreetwearfashion",
+        "commented_on_accounts": ["somerandomcommentedonaccount", "another one", ...]
+        "rotated_target_accounts_list": ["riotsociety", "nike", "adidas", ...]
+      }
+    '''
+
+    lambda_callback_serializer = serializers.LambdaCallbackSerializer(data=request.data)
+
+    if lambda_callback_serializer.is_valid():
+      promo_username = request.data['promo_username']
+      commented_on_accounts = request.data['commented_on_accounts']
+      rotated_target_accounts_list = request.data['rotated_target_accounts_list']
+      try:
+        promo_account_owner_username = promo_account_service.get_promo_account_owner_username(promo_username)
+        #add commented accounts to user commented on accounts
+        added_commented_on_accounts = user_service.add_commented_on_accounts(promo_account_owner_username, promo_username, commented_on_accounts)
+        #set the target accounts list to the new rotated one
+        promo_account_service.set_promo_targeting_list(promo_username, rotated_target_accounts_list)
+        return Response({
+          "message": "added commented on accounts",
+          "data": added_commented_on_accounts,
+        }, status=status.HTTP_200_OK)
+      except Exception as e:
+        return Response({
+          "message": "no promo account corresponding to promo username",
+          "data": lambda_callback_serializer.data,
+        }, status=status.HTTP_404_NOT_FOUND)
+    else:
+      return Response({
+        "message": "invalid",
+        "data": lambda_callback_serializer.data,
+        "errors": lambda_callback_serializer.errors,
+      }, status=status.HTTP_400_BAD_REQUEST)

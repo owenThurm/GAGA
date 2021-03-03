@@ -35,6 +35,9 @@ class UserService():
     user_set = user_set_serializer.data
     return user_set
 
+  def get_user_id_from_username(self, user_username):
+    user = self._get_user_by_username(user_username)
+    return user.id
 
   def get_user_username_from_email(self, user_email):
     return self._get_user_by_email(user_email).username
@@ -347,3 +350,20 @@ class UserService():
       comment_filter = CommentFilter(user=user)
       comment_filter.save()
     return comment_filter
+
+  def add_commented_on_accounts(self, user_username, promo_username, commented_on_accounts):
+    promo_account_id = self.promo_account_service.get_promo_account_id(promo_username)
+    user_id = self.get_user_id_from_username(user_username)
+    for account in commented_on_accounts:
+      commented_on_account_data = {
+          'commented_on_account_username': account,
+          'promo_account': promo_account_id,
+          'user': user_id
+        }
+      commented_on_account_serializer = serializers.CommentedAccountSerializer(data=commented_on_account_data)
+      if commented_on_account_serializer.is_valid():
+        commented_on_account_serializer.save()
+      else:
+        print('invalid', commented_on_account_data)
+        print(commented_on_account_serializer.data, commented_on_account_serializer.errors)
+    return commented_on_accounts

@@ -19,6 +19,7 @@ urlpatterns = [
     url('user/forgotpassword', views.ForgotPasswordAPIView.as_view()),
     url('user/tokenresetpassword', views.ResetPasswordWithTokenAPIView.as_view()),
     url('user/statistics', views.UserStatisticsAPIView.as_view()),
+    url('lambdacallback', views.LambdaCallbackAPIView.as_view()),
     url('user', views.UserAPIView.as_view()),
     url('promo', views.PromoAPIView.as_view()),
     url('commentedaccounts', views.CommentedAccountsAPIView.as_view()),

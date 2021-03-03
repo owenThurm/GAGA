@@ -15,6 +15,10 @@ class PromoAccountService:
   def _get_promo_account(self, promo_username):
     return Promo_Account.objects.get(promo_username=promo_username)
 
+  def get_promo_account_id(self, promo_username):
+    promo_account = self._get_promo_account(promo_username)
+    return promo_account.id
+
   def promo_is_queued(self, promo_username):
     return self._get_promo_account(promo_username).is_queued
 
