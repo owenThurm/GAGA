@@ -24,10 +24,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = '^x-^)by&rcu3i=0dcx&j=cd%13b8l6c(e5&5n+^^l*bnp!6#u='
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 # ALLOWED_HOSTS = ['34.226.214.56', 'owenthurm.com']
-ALLOWED_HOSTS=['*']
+ALLOWED_HOSTS=['owenthurm.com', '34.226.214.56']
 
 CORS_ALLOW_HEADERS = default_headers + ('access-control-allow-origin', 'access-control-allow-methods',)
 
