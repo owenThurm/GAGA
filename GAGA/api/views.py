@@ -1202,3 +1202,49 @@ class LambdaCallbackAPIView(views.APIView):
         "data": lambda_callback_serializer.data,
         "errors": lambda_callback_serializer.errors,
       }, status=status.HTTP_400_BAD_REQUEST)
+
+class PromoLimitedAPIView(views.APIView):
+  '''Used to handle promo accounts being limited by Instagram'''
+
+  def post(self, request, format=None):
+    '''
+      * Disables the promo account until further notice
+      * Sets the comment level of the promo down one
+      * Increases the number of comments threshold to
+        increment the comment level at
+      * Increases the delta that the number of comments
+        threshold to increment the comment level increases by
+
+      expects the following body:
+
+      {
+        "promo_username": "upcomingstreetwearfashion"
+      }
+    '''
+
+    promo_limited_serializer = serializers.PromoUsernameSerializer(data=request.data)
+
+    if promo_limited_serializer.is_valid():
+      promo_username = request.data['promo_username']
+      try:
+        promo_account_service.disable_promo_account(promo_username)
+        promo_account_service.decrement_promo_comment_level(promo_username)
+        # sets the increment comment level threshold delta to
+        # be 1000 if it's currently less than 1000
+        promo_account_service.increase_increment_comment_level_threshold_delta(promo_username)
+        promo_account_service.increase_increment_comment_level_threshold(promo_username)
+      except Exception as e:
+        return Response({
+          "message": "no promo account corresponding to given promo username",
+          "data": promo_limited_serializer.data,
+        }, status=status.HTTP_404_NOT_FOUND)
+      return Response({
+        "message": "disabled and slowed promo comment scaling",
+        "data": promo_limited_serializer.data,
+      }, status=status.HTTP_200_OK)
+    else:
+      return Response({
+        "message": "invalid",
+        "data": promo_limited_serializer.data,
+        "errors": promo_limited_serializer.errors,
+      }, status=status.HTTP_400_BAD_REQUEST)

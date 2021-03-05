@@ -279,3 +279,41 @@ class PromoAccountService:
       promo_account.target_accounts = promo_target_accounts_list
       promo_account.save()
     return promo_target_accounts_list
+
+  def disable_promo_account(self, promo_username):
+    promo_account = self._get_promo_account(promo_username)
+    if promo_account.activated:
+      promo_account.activated = False
+    promo_account.is_disabled = True
+    promo_account.save()
+    return promo_username
+
+  def decrement_promo_comment_level(self, promo_username):
+    promo_account = self._get_promo_account(promo_username)
+    promo_account_comment_level = promo_account.comment_level
+    if promo_account_comment_level > 2:
+      promo_account.comment_level = promo_account.comment_level - 1
+      promo_account.save()
+      return promo_account_comment_level - 1
+    return promo_account_comment_level
+
+  def increase_increment_comment_level_threshold(self, promo_username):
+    promo_account = self._get_promo_account(promo_username)
+    promo_account_increment_comment_level_comment_delta = self._get_promo_account_increment_comment_level_threshold_delta(
+      promo_account
+    )
+    promo_account.increment_comment_level_comment_number += promo_account_increment_comment_level_comment_delta
+    promo_account.save()
+
+  def _get_promo_account_increment_comment_level_threshold_delta(self, promo_account):
+    return promo_account.increment_comment_level_comment_delta
+
+  def increase_increment_comment_level_threshold_delta(self, promo_username):
+    # sets the increment comment level threshold delta to be 1000
+    promo_account = self._get_promo_account(promo_username)
+    promo_account_increment_comment_level_comment_delta = promo_account.increment_comment_level_comment_delta
+    if promo_account_increment_comment_level_comment_delta < 1000:
+      promo_account.increment_comment_level_comment_delta = 1000
+      promo_account.save()
+      return 1000
+    return promo_account_increment_comment_level_comment_delta
