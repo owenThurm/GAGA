@@ -37,7 +37,8 @@ class GetPromoSerializer(serializers.ModelSerializer):
     model = Promo_Account
     fields = ('promo_username', 'target_accounts', 'user',
               'activated', 'under_review', 'comment_rounds_today', 'is_queued',
-              'proxy', 'comments_until_sleep', 'is_liking')
+              'proxy', 'comments_until_sleep', 'is_liking', 'comment_level',
+              'increment_comment_level_comment_delta', 'increment_comment_level_comment_number')
 
 class CommentedAccountsSerializer(serializers.Serializer):
   """Serializes accounts commented on for a given user"""

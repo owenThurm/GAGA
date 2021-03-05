@@ -188,10 +188,25 @@ class PromoAccountService:
 
   def get_promo_comment_level(self, promo_username):
     promo_account = self._get_promo_account(promo_username)
-    commented_on_set = promo_account.commented_on_account_set.all()
-    number_of_commented_on_accounts = len(commented_on_set)
-    comment_level = min(number_of_commented_on_accounts // 400 + 5, 12)
-    return comment_level
+    return promo_account.comment_level
+
+  def _get_promo_number_of_comments_done(self, promo_account):
+    return len(promo_account.commented_on_account_set.all())
+
+  def update_promo_comment_level(self, promo_username):
+    promo_account = self._get_promo_account(promo_username)
+    promo_account_number_comments_done = self._get_promo_number_of_comments_done(promo_account)
+    promo_increment_comment_level_comment_number = promo_account.increment_comment_level_comment_number
+    promo_comment_level = promo_account.comment_level
+    if promo_comment_level >= 12:
+      return promo_comment_level
+    if promo_account_number_comments_done > promo_increment_comment_level_comment_number:
+      promo_increment_comment_level_comment_delta = promo_account.increment_comment_level_comment_delta
+      promo_account.comment_level = promo_comment_level + 1
+      promo_account.increment_comment_level_comment_number = promo_increment_comment_level_comment_number + promo_increment_comment_level_comment_delta
+      promo_account.save()
+      return promo_comment_level + 1
+    return promo_comment_level
 
   def subtract_comments_from_comments_until_sleep(self, promo_username, commented_on_accounts_list):
     promo_account = self._get_promo_account(promo_username)

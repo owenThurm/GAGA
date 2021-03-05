@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.postgres.fields import ArrayField
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 from datetime import datetime, timedelta
+from django.core.validators import MaxValueValidator, MinValueValidator
 
 # Growth Automation Models
 
@@ -88,6 +89,9 @@ class Promo_Account(models.Model):
   comments_until_sleep = models.IntegerField(default=800)
   is_liking = models.BooleanField(default=True)
   is_disabled = models.BooleanField(default=False)
+  comment_level = models.IntegerField(default=5, validators=[MinValueValidator(1), MaxValueValidator(15)])
+  increment_comment_level_comment_delta = models.IntegerField(default=400, validators=[MinValueValidator(100)])
+  increment_comment_level_comment_number = models.IntegerField(default=400)
 
   REQUIRED_FIELDS = ["promo_username", "promo_password", "target_accounts", "user"]
 

@@ -38,7 +38,6 @@ def comment_round(promo_username):
     return
 
   promo_password = promo_account_service.get_promo_password(promo_username)
-  promo_target = promo_account_service.get_next_target_account_and_rotate(promo_username)
   promo_proxy = promo_account_service.get_promo_proxy(promo_username)
   accounts_already_commented_on = promo_account_service.get_accounts_already_commented_on(promo_username)
   comment_rounds_today = promo_account_service.get_comment_rounds_today(promo_username)
@@ -61,7 +60,6 @@ def comment_round(promo_username):
   promo_attributes = {
     'promo_username': promo_username,
     'promo_password': promo_password,
-    'target_account': promo_target,
     'promo_target_accounts_list': promo_target_accounts_list,
     'proxy': promo_proxy,
     'accounts_already_commented_on': accounts_already_commented_on,
@@ -71,7 +69,7 @@ def comment_round(promo_username):
     'comment_filter': user_comment_filter,
   }
 
-  logging.debug(f'''Comment round for {promo_username}, targeting {promo_target},
+  logging.debug(f'''Comment round for {promo_username}, targeting {promo_target_accounts_list},
   with proxy: {promo_proxy}, with custom comments: {account_custom_comment_pool}, 
   at time: {datetime.now()}''')
   logging.debug('Comment Rounds Already Today: ', comment_rounds_today)

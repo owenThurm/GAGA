@@ -1185,6 +1185,8 @@ class LambdaCallbackAPIView(views.APIView):
         added_commented_on_accounts = user_service.add_commented_on_accounts(promo_account_owner_username, promo_username, commented_on_accounts)
         #set the target accounts list to the new rotated one
         promo_account_service.set_promo_targeting_list(promo_username, rotated_target_accounts_list)
+        #update the promo comment level (no-op if haven't reached the increment comment number)
+        promo_account_service.update_promo_comment_level(promo_username)
         return Response({
           "message": "added commented on accounts",
           "data": added_commented_on_accounts,
