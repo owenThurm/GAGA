@@ -37,6 +37,9 @@ def comment_round(promo_username):
     logging.debug(f'dequeueing {promo_username}')
     return
 
+  if promo_account_service.promo_is_resting(promo_username):
+    promo_account_service.set_promo_is_resting(promo_username, False)
+
   promo_password = promo_account_service.get_promo_password(promo_username)
   promo_proxy = promo_account_service.get_promo_proxy(promo_username)
   accounts_already_commented_on = promo_account_service.get_accounts_already_commented_on(promo_username)
@@ -70,7 +73,7 @@ def comment_round(promo_username):
   }
 
   logging.debug(f'''Comment round for {promo_username}, targeting {promo_target_accounts_list},
-  with proxy: {promo_proxy}, with custom comments: {account_custom_comment_pool}, 
+  with proxy: {promo_proxy}, with custom comments: {account_custom_comment_pool},
   at time: {datetime.now()}''')
   logging.debug('Comment Rounds Already Today: ', comment_rounds_today)
 
@@ -93,6 +96,7 @@ def continue_queue(promo_username, sleep_until_tomorrow):
     # is going to sleep tomorrow and time to rest for a day ->
     # rest for 34.5 hours
     logging.debug(f'{promo_username} is sleeping for a day')
+    promo_account_service.set_promo_is_resting(promo_username, True)
     promo_account_service.reset_promo_comments_until_sleep(promo_username)
     queue.enqueue_in(timedelta(hours=34, minutes=randint(0,60)), comment_round, promo_username)
   elif sleep_until_tomorrow:

@@ -308,6 +308,7 @@ class UserService():
       "promo_total_comments": promo_total_comments,
       "promo_comment_level": promo_comment_level,
       "promo_is_disabled": promo_account.is_disabled,
+      "promo_is_resting": promo_account.is_resting,
     }
 
   def get_username_from_email(self, user_email):

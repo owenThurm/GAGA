@@ -54,6 +54,7 @@ class PromoAccountService:
       "promo_total_comments": promo_total_comments,
       "promo_comment_level": promo_comment_level,
       "promo_is_disabled": promo_account.is_disabled,
+      "promo_is_resting": promo_account.is_resting,
     }
     return promo_data
 
@@ -315,3 +316,14 @@ class PromoAccountService:
       promo_account.save()
       return 1000
     return promo_account_increment_comment_level_comment_delta
+
+  def set_promo_is_resting(self, promo_username, is_resting):
+    promo_account = self._get_promo_account(promo_username)
+    if promo_account.is_resting != is_resting:
+      promo_account.is_resting = is_resting
+      promo_account.save()
+    return is_resting
+
+  def promo_is_resting(self, promo_username):
+    promo_account = self._get_promo_account(promo_username)
+    return promo_account.is_resting
