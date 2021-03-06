@@ -152,8 +152,6 @@ class PromoAccountService:
       promo_account.activated = False
     if promo_account.under_review == False:
       promo_account.under_review = True
-    if promo_account.is_queued == True:
-      promo_account.is_queued = False
     promo_account.save()
     return promo_account
 
