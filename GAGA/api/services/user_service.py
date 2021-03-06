@@ -276,10 +276,10 @@ class UserService():
       "user_location": user.location,
       "user_using_custom_coments": user.using_custom_comments,
       "user_total_comments": user_total_comments,
+      "user_email_validated": user_email_validated,
       "user_custom_comment_pool": user_custom_comments,
       "user_comment_filter": user_comment_filter,
       "user_promo_accounts": user_promo_accounts,
-      "user_email_validated": user_email_validated,
     }
     return user_data
 
