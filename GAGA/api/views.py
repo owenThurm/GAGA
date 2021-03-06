@@ -1261,6 +1261,32 @@ class PromoLimitedAPIView(views.APIView):
 class AuthenticateUserWithEmailValidation(views.APIView):
   '''Used to authenticate user credentials as well as email validation'''
 
+  def get(self, request, format=None):
+    '''
+      Sends an email to the given user email that holds an authenticate
+      email link.
+
+      expected query param: ?email='owen.p.thurm@gmail.com'
+    '''
+
+    try:
+      user_email = request.query_params['email']
+      try:
+        user_service.send_register_email_validation_email(user_email)
+      except Exception as e:
+        return Response({
+          "message": "user responding to email does not exist",
+          "data": user_email,
+        }, status=status.HTTP_200_OK)
+      return Response({
+        "message": "sent email validation email",
+        "email": user_email,
+      }, status=status.HTTP_200_OK)
+    except Exception as e:
+      return Response({
+        "message": "must include an email query parameter",
+      }, status=status.HTTP_400_BAD_REQUEST)
+
   def post(self, request, format=None):
     '''
       Checks if the given email and password information are valid.
