@@ -57,6 +57,12 @@ class UserAPIView(views.APIView):
     return Response(users, status=status.HTTP_200_OK)
 
   def post(self, request, format=None):
+    '''
+      Used to create a user. When creating a user,
+      Sends an email to the given address that contains a link
+      to the login page with the email validation token as a
+      query parameter.
+    '''
     try:
       request.data['email'] = request.data['email'].lower()
     except Exception as e:
@@ -64,8 +70,11 @@ class UserAPIView(views.APIView):
     user_serializer = serializers.UserSerializer(data=request.data)
 
     if user_serializer.is_valid():
+      user_email = request.data['email']
       user_serializer.save()
       auth_token = user_service.generate_token(user_serializer.data['username'])
+      # Send email validation email
+      user_service.send_register_email_validation_email(user_email)
       return Response({
         'message': 'saved', 'data': user_serializer.data,
         'token': auth_token
@@ -786,7 +795,7 @@ class ForgotPasswordAPIView(views.APIView):
           "data": forgot_password_serializer.data
         })
       # generate a reset password token for that user
-      reset_password_token = user_service.generate_reset_password_token_for_user(user_username)
+      reset_password_token = user_service.generate_email_validation_token_for_user(user_username)
       reset_password_url = 'https://growthautomation.netlify.com/resetpassword/reset?token='+reset_password_token
       # send an email with reset password instructions as well as a link to
       # https://growthautomation.netlify.com/resetpassword/reset?token=adfadfadfasdfadfl
@@ -816,7 +825,7 @@ class ForgotPasswordAPIView(views.APIView):
       }, status=status.HTTP_400_BAD_REQUEST)
 
 class ResetPasswordWithTokenAPIView(views.APIView):
-  '''Handles requests to reset a user's password with ResetPasswordToken authentication'''
+  '''Handles requests to reset a user's password with EmailValidationToken authentication'''
 
   def get(self, request, format=None):
     '''Returns the user username associated with a reset password token'''
@@ -1248,3 +1257,67 @@ class PromoLimitedAPIView(views.APIView):
         "data": promo_limited_serializer.data,
         "errors": promo_limited_serializer.errors,
       }, status=status.HTTP_400_BAD_REQUEST)
+
+class AuthenticateUserWithEmailValidation(views.APIView):
+  '''Used to authenticate user credentials as well as email validation'''
+
+  def post(self, request, format=None):
+    '''
+      Checks if the given email and password information are valid.
+
+      Then checks that the given email validation token corresponds
+      to the given email, and sets the user's email_validated status
+      accordingly.
+
+      expects the following body:
+
+      {
+        "username": "owenthurm",
+        "password": "Password123",
+        "email_validation_token": "alsdkjhfaklsdjhkjahkisdwoeoiw"
+      }
+    '''
+
+    authenticate_with_email_serializer = serializers.AuthenticationWithEmailValidationSerializer(data=request.data)
+
+    if authenticate_with_email_serializer.is_valid():
+      user_email = request.data['email']
+      user_password = request.data['password']
+      email_validation_token = request.data['email_validation_token']
+      # Authenticate the username and password
+      user_username = user_service.authenticate_user(user_email, user_password)
+      if user_username is None:
+        # did not pass authentication
+        return Response({
+          "message": "invalid credentials",
+          "authenticated": False,
+        }, status=status.HTTP_200_OK)
+      # Verify that the email_validation_token matches the email
+      try:
+        if user_service.email_validation_token_matches_user_email(user_email, email_validation_token):
+          # Set the email_validated to be true
+          user_service.set_email_validated(user_username, True)
+          auth_token = user_service.generate_token(user_username)
+          return Response({
+            "message": "user authenticated and email verified",
+            "authenticated": True,
+            "token": auth_token,
+          }, status=status.HTTP_200_OK)
+        else:
+          return Response({
+            "message": "email validation token invalid",
+            "authenticated": False,
+          }, status=status.HTTP_200_OK)
+      except Exception as e:
+        return Response({
+          "message": "invalid email validation token",
+          "authenticated": False,
+          "data": authenticate_with_email_serializer.data,
+        }, status=status.HTTP_200_OK)
+    else:
+      return Response({
+        "message": "invalid",
+        "data": authenticate_with_email_serializer.data,
+        "errors": authenticate_with_email_serializer.errors,
+      }, status=status.HTTP_400_BAD_REQUEST)
+

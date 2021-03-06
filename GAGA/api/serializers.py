@@ -56,6 +56,13 @@ class AuthenticationSerializer(serializers.Serializer):
   email = serializers.CharField(max_length=30)
   password = serializers.CharField(max_length=15)
 
+class AuthenticationWithEmailValidationSerializer(serializers.Serializer):
+  """Serializes a request to authenticate a user with email validation"""
+
+  email = serializers.CharField(max_length=30)
+  password = serializers.CharField(max_length=15)
+  email_validation_token = serializers.CharField(max_length=120)
+
 class PromoUsernameSerializer(serializers.Serializer):
   """Serializers a promo account acitvation/deactivation call"""
   promo_username = serializers.CharField(max_length=30)
@@ -118,7 +125,7 @@ class ForgotPasswordSerializer(serializers.Serializer):
   email = serializers.EmailField()
 
 class ResetPasswordAuthenticatedSerializer(serializers.Serializer):
-  """Serializes a request to reset a password using ResetPasswordToken authentication"""
+  """Serializes a request to reset a password using EmailValidationToken authentication"""
 
   new_password = serializers.CharField(max_length=20)
   reset_password_token = serializers.CharField(max_length=120)

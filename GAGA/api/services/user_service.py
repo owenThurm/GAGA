@@ -1,4 +1,4 @@
-from ..models import User, CustomComment, ResetPasswordToken, UserManager, CommentFilter
+from ..models import User, CustomComment, EmailValidationToken, UserManager, CommentFilter
 from django.contrib.auth import authenticate
 from rest_framework.authtoken.models import Token
 from django.utils.crypto import get_random_string
@@ -6,6 +6,7 @@ from datetime import datetime
 from .. import serializers
 from django.utils.functional import cached_property
 import pytz
+import smtplib
 
 utc = pytz.UTC
 
@@ -128,9 +129,6 @@ class UserService():
     return False
 
   def authenticate_user(self, user_email, user_password):
-    print(user_email)
-    print(user_password)
-    print(authenticate(email=user_email, password=user_password))
     if authenticate(email=user_email, password=user_password):
       return self.get_user_username_from_email(user_email)
     else:
@@ -167,13 +165,13 @@ class UserService():
     else:
       return None
 
-  def _get_reset_password_token_from_key(self, reset_password_token_key):
-    return ResetPasswordToken.objects.get(key=reset_password_token_key)
+  def _get_email_validation_token_from_key(self, reset_password_token_key):
+    return EmailValidationToken.objects.get(key=reset_password_token_key)
 
-  def generate_reset_password_token_for_user(self, user_username):
+  def generate_email_validation_token_for_user(self, user_username):
     user = self._get_user_by_username(user_username)
     random_token_string = get_random_string(length=32)
-    reset_password_token = ResetPasswordToken(user=user, key=random_token_string)
+    reset_password_token = EmailValidationToken(user=user, key=random_token_string)
     reset_password_token.save()
     return random_token_string
 
@@ -251,12 +249,20 @@ class UserService():
       'post_description_avoided_key_phrases': comment_filter.post_description_avoided_key_phrases,
     }
 
+  def _get_user_email_validated(self, user):
+    return user.validated_email
+
+  def get_user_email_validated(self, user_username):
+    user = self._get_user_by_username(user_username)
+    return user.validated_email
+
   def get_user_data(self, user_username):
     user = self._get_user_by_username(user_username)
     user_promo_accounts = self.get_user_promo_accounts(user_username)
     user_total_comments = self.get_user_all_time_num_comments(user_username)
     user_custom_comments = self.get_user_custom_comments_text(user_username)
     user_comment_filter = self._get_user_comment_filter(user)
+    user_email_validated = self._get_user_email_validated(user)
     user_data = {
       "user_username": user.username,
       "user_email": user.email,
@@ -273,6 +279,7 @@ class UserService():
       "user_custom_comment_pool": user_custom_comments,
       "user_comment_filter": user_comment_filter,
       "user_promo_accounts": user_promo_accounts,
+      "user_email_validated": user_email_validated,
     }
     return user_data
 
@@ -367,3 +374,35 @@ class UserService():
         print('invalid', commented_on_account_data)
         print(commented_on_account_serializer.data, commented_on_account_serializer.errors)
     return commented_on_accounts
+
+  def _get_email_validation_token_object(self, email_validation_token):
+    return EmailValidationToken.objects.get(key=email_validation_token)
+
+  def email_validation_token_matches_user_email(self, user_email, email_validation_token):
+    user_username = self.get_user_username_from_email(user_email)
+    email_validation_token_object = self._get_email_validation_token_object(email_validation_token)
+    email_validation_token_user_username = email_validation_token_object.user.username
+    return email_validation_token_user_username == user_username
+
+  def send_register_email_validation_email(self, user_email):
+    user_username = self.get_user_username_from_email(user_email)
+    email_validation_token = self.generate_email_validation_token_for_user(user_username)
+    user_login_with_email_validation_url = 'https://growthautomation.netlify.com/login?token='+email_validation_token
+    with smtplib.SMTP('smtp.gmail.com', 587) as smtp:
+      smtp.ehlo()
+      smtp.starttls()
+      smtp.ehlo()
+
+      smtp.login('genuineapparelsuccess@gmail.com', 'ntdqiwzyasuvpruo')
+
+      subject = 'Growth Automation Email Verification'
+      body = f'Follow this link to verify your email!\n{user_login_with_email_validation_url}'
+
+      msg = f'Subject: {subject}\n\n{body}'
+
+      smtp.sendmail('genuineapparelsuccess@gmail.com', user_email, msg)
+
+  def set_email_validated(self, user_username, email_validated):
+    user = self._get_user_by_username(user_username)
+    user.email_validated = email_validated
+    return email_validated

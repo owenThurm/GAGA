@@ -61,6 +61,7 @@ class User(AbstractBaseUser):
   brand_name = models.CharField(max_length=30)
   location = models.CharField(max_length=30)
   using_custom_comments = models.BooleanField(default=False)
+  validated_email = models.BooleanField(default=False)
 
   USERNAME_FIELD = "email"
   REQUIRED_FIELDS = ["username", "brand_name", "password", "location"]
@@ -110,7 +111,7 @@ class CustomComment(models.Model):
   comment_text = models.CharField(max_length=100)
   user = models.ForeignKey(User, on_delete=models.CASCADE)
 
-class ResetPasswordToken(models.Model):
+class EmailValidationToken(models.Model):
   key = models.CharField(max_length=120)
   user = models.ForeignKey(User, on_delete=models.CASCADE)
   valid_until = models.DateTimeField(default=default_start_time)
