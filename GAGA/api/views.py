@@ -1087,14 +1087,16 @@ class LambdaCallbackAPIView(views.APIView):
       try:
         promo_account_owner_username = promo_account_service.get_promo_account_owner_username(promo_username)
         #add commented accounts to user commented on accounts
-        added_commented_on_accounts = user_service.add_commented_on_accounts(promo_account_owner_username, promo_username, commented_on_accounts)
+        user_service.add_commented_on_accounts(promo_account_owner_username, promo_username, commented_on_accounts)
         #set the target accounts list to the new rotated one
         promo_account_service.set_promo_targeting_list(promo_username, rotated_target_accounts_list)
+        # subtract number of comments in the list comming in from promo_account.comments_until_sleep
+        promo_account_service.subtract_comments_from_comments_until_sleep(promo_username, commented_on_accounts)
         #update the promo comment level (no-op if haven't reached the increment comment number)
         promo_account_service.update_promo_comment_level(promo_username)
         return Response({
-          "message": "added commented on accounts",
-          "data": added_commented_on_accounts,
+          "message": "added commented on accounts and rotated targets",
+          "data": lambda_callback_serializer.data,
         }, status=status.HTTP_200_OK)
       except Exception as e:
         return Response({
