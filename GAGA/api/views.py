@@ -837,7 +837,7 @@ class ResetPasswordWithTokenAPIView(views.APIView):
     try:
       reset_password_token = request.query_params['reset_password_token']
       try:
-        user_username = user_service.get_user_from_reset_password_token(reset_password_token)
+        user_username = user_service.get_user_from_email_validation_token(reset_password_token)
         return Response({
           "message": "user username",
           "data": user_username
