@@ -404,6 +404,6 @@ class UserService():
 
   def set_email_validated(self, user_username, email_validated):
     user = self._get_user_by_username(user_username)
-    user.email_validated = email_validated
+    user.validated_email = email_validated
     user.save()
     return email_validated
