@@ -183,67 +183,6 @@ class PromoAPIView(views.APIView):
         "errors": update_promo_serializer.errors,
       }, status=status.HTTP_400_BAD_REQUEST)
 
-
-class CommentedAccountsAPIView(views.APIView):
-  '''APIView for adding and accessing commented on accounts for each user'''
-
-  serializer_class = serializers.CommentedAccountsSerializer
-
-  def post(self, request, format=None):
-    '''Takes a list of strings, where each string is the username of an
-    account that has been commented on by the user'''
-
-    '''
-    body format:
-
-    {
-      "promo_username": "genuineaesthetic"
-      "commented_on_accounts": ["commented_on_account_1_username",
-                                "commented_on_account_2_username", ...]
-    }'''
-
-    commented_accounts_serializer = serializers.CommentedAccountsSerializer(data=request.data)
-
-    if commented_accounts_serializer.is_valid():
-      promo_username = commented_accounts_serializer.data['promo_username']
-      try:
-        promo_account = models.Promo_Account.objects.get(promo_username=promo_username)
-      except Exception as e:
-        return Response({
-          "message": "no promo account corresponding to promo username",
-          "data": promo_username,
-        }, status=status.HTTP_404_NOT_FOUND)
-      user = promo_account.user
-      commented_on_accounts = request.data['commented_on_accounts']
-      for account in request.data['commented_on_accounts']:
-        commented_on_account_data = {
-          'commented_on_account_username': account,
-          'promo_account': promo_account.id,
-          'user': user.id
-        }
-        commented_on_account_serializer = serializers.CommentedAccountSerializer(data=commented_on_account_data)
-        if commented_on_account_serializer.is_valid():
-          commented_on_account_serializer.save()
-          print('saved', commented_on_account_data)
-          print(commented_on_account_serializer.data)
-        else:
-          print('invalid', commented_on_account_data)
-          print(commented_on_account_serializer.data, commented_on_account_serializer.errors)
-
-      # subtract number of comments in the list comming in from promo_account.comments_until_sleep
-      promo_account_service.subtract_comments_from_comments_until_sleep(promo_username, commented_on_accounts)
-
-      return Response({
-        "message": "saved",
-        "data": commented_accounts_serializer.data,
-      }, status=status.HTTP_200_OK)
-    else:
-      return Response({
-        "message": "invalid",
-        "data": commented_accounts_serializer.data,
-        "errors": commented_accounts_serializer.errors,
-      }, status=status.HTTP_400_BAD_REQUEST)
-
 class AuthenticationAPIView(views.APIView):
   '''An APIView for authenticating users'''
 
@@ -1038,51 +977,8 @@ class DisableAPIView(views.APIView):
         "errors": set_disabled_status_serializer.errors,
       }, status=status.HTTP_400_BAD_REQUEST)
 
-class PromoTargetsAPIView(views.APIView):
-  '''
-      An APIView to update the list of targets for a promo,
-      where the first string in the list is the next ig
-      account to be targeted by the promo account.
-  '''
-
-  def put(self, request, format=None):
-    '''
-      used to update the promo targets list
-
-      expects the following body:
-
-      {
-        "promo_username": "upcomingstreetwearfashion",
-        "promo_target_accounts_list": ["nike", "riotsociety", ...]
-      }
-    '''
-
-    update_targets_serializer = serializers.PromoTargetsSerializer(data=request.data)
-
-    if update_targets_serializer.is_valid():
-      promo_username = request.data['promo_username']
-      promo_target_account_list = request.data['promo_target_accounts_list']
-      try:
-        promo_account_service.set_promo_target_accounts_list(promo_username, promo_target_account_list)
-      except Exception as e:
-        return Response({
-          "message": "no promo account corresponding to promo username",
-          "data": update_targets_serializer.data,
-        }, status=status.HTTP_404_NOT_FOUND)
-      return Response({
-        "message": "updated promo targets list",
-        "data": update_targets_serializer.data,
-      }, status=status.HTTP_200_OK)
-    else:
-      return Response({
-        "message": "invalid",
-        "data": update_targets_serializer.data,
-        "errors": update_targets_serializer.errors,
-      }, status=status.HTTP_400_BAD_REQUEST)
-
 class CommentFilterAPIView(views.APIView):
   '''An APIView for comment filters'''
-
 
   def post(self, request, format=None):
     '''

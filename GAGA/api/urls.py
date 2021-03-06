@@ -8,7 +8,6 @@ urlpatterns = [
     url('promo/liking', views.LikingAPIView.as_view()),
     url('promo/review', views.SetProxyAPIView.as_view()),
     url('promo/disable', views.DisableAPIView.as_view()),
-    url('promo/targets', views.PromoTargetsAPIView.as_view()),
     url('promo/limited', views.PromoLimitedAPIView.as_view()),
     url('user/commentfilter', views.CommentFilterAPIView.as_view()),
     url('user/promoaccounts', views.UserPromoAccountsAPIView.as_view()),
@@ -24,7 +23,6 @@ urlpatterns = [
     url('lambdacallback', views.LambdaCallbackAPIView.as_view()),
     url('user', views.UserAPIView.as_view()),
     url('promo', views.PromoAPIView.as_view()),
-    url('commentedaccounts', views.CommentedAccountsAPIView.as_view()),
     url('deactivate', views.DeactivateAPIView.as_view()),
     url('activate', views.ActivateAPIView.as_view()),
 ]
