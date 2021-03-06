@@ -165,24 +165,24 @@ class UserService():
     else:
       return None
 
-  def _get_email_validation_token_from_key(self, reset_password_token_key):
-    return EmailValidationToken.objects.get(key=reset_password_token_key)
+  def _get_email_validation_token_from_key(self, email_validation_token_key):
+    return EmailValidationToken.objects.get(key=email_validation_token_key)
 
   def generate_email_validation_token_for_user(self, user_username):
     user = self._get_user_by_username(user_username)
     random_token_string = get_random_string(length=32)
-    reset_password_token = EmailValidationToken(user=user, key=random_token_string)
-    reset_password_token.save()
+    email_validation_token = EmailValidationToken(user=user, key=random_token_string)
+    email_validation_token.save()
     return random_token_string
 
-  def reset_password_token_is_valid(self, reset_password_token_key):
-    token = self._get_reset_password_token_from_key(reset_password_token_key)
+  def email_validation_token_is_valid(self, email_validation_token_key):
+    token = self._get_email_validation_token_from_key(email_validation_token_key)
     current_time = datetime.now().replace(tzinfo=utc)
     valid_until_time = token.valid_until.replace(tzinfo=utc)
     return current_time < valid_until_time
 
-  def get_user_from_reset_password_token(self, reset_password_token_key):
-    token = self._get_reset_password_token_from_key(reset_password_token_key)
+  def get_user_username_from_email_validation_token(self, email_validation_token_key):
+    token = self._get_email_validation_token_from_key(email_validation_token_key)
     return token.user.username
 
   def reset_user_password(self, user_username, new_password):
@@ -190,10 +190,10 @@ class UserService():
     user_manager.set_password(user_username, new_password)
     return new_password
 
-  def delete_reset_password_token(self, reset_password_token_key):
-    token = self._get_reset_password_token_from_key(reset_password_token_key)
+  def delete_email_validation_token(self, email_validation_token_key):
+    token = self._get_email_validation_token_from_key(email_validation_token_key)
     token.delete()
-    return reset_password_token_key
+    return email_validation_token_key
 
   def get_user_stats(self, user_username):
     all_time_num_comments = self.get_user_all_time_num_comments(user_username)

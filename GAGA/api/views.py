@@ -837,7 +837,7 @@ class ResetPasswordWithTokenAPIView(views.APIView):
     try:
       reset_password_token = request.query_params['reset_password_token']
       try:
-        user_username = user_service.get_user_from_email_validation_token(reset_password_token)
+        user_username = user_service.get_user_username_from_email_validation_token(reset_password_token)
         return Response({
           "message": "user username",
           "data": user_username
@@ -869,15 +869,15 @@ class ResetPasswordWithTokenAPIView(views.APIView):
       new_password = request.data['new_password']
       reset_password_token = request.data['reset_password_token']
       try:
-        is_valid_reset_password_token = user_service.reset_password_token_is_valid(reset_password_token)
+        is_valid_reset_password_token = user_service.email_validation_token_is_valid(reset_password_token)
       except Exception as e:
         return Response({
           "message": "token doesn't exist or has already been used"
         }, status=status.HTTP_404_NOT_FOUND)
       if is_valid_reset_password_token:
-        user_username = user_service.get_user_from_reset_password_token(reset_password_token)
+        user_username = user_service.get_user_username_from_email_validation_token(reset_password_token)
         user_service.reset_user_password(user_username, new_password)
-        user_service.delete_reset_password_token(reset_password_token)
+        user_service.delete_email_validation_token(reset_password_token)
         return Response({
           "message": "password reset",
           "data": reset_password_serializer.data
