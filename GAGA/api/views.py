@@ -685,7 +685,7 @@ class CustomCommentPoolAPIView(views.APIView):
         return Response({
           "message": "Comments are not unique",
           "data": duplicate_comment_text
-        }, status=status.HTTP_400_BAD_REQUEST)
+        }, status=status.HTTP_200_OK)
       try:
         user_service.add_to_user_custom_comment_pool(user_username, new_custom_comments)
       except Exception as e:
