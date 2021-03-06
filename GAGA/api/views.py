@@ -84,7 +84,7 @@ class UserAPIView(views.APIView):
         "message": "invalid user",
         "data": user_serializer.data,
         "errors": user_serializer.errors,
-      }, status=status.HTTP_400_BAD_REQUEST)
+      }, status=status.HTTP_200_OK)
 
 class PromoAPIView(views.APIView):
   """APIView for Promo Accounts"""
