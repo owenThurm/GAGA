@@ -181,6 +181,7 @@ class LambdaCallbackSerializer(serializers.Serializer):
   """Serializes a callback from a comment round in the lambda function"""
 
   promo_username = serializers.CharField(max_length=30)
+  promo_is_liking = serializers.BooleanField()
   commented_on_accounts = serializers.ListSerializer(child=serializers.CharField(max_length=30))
   rotated_target_accounts_list = serializers.ListSerializer(child=serializers.CharField(max_length=30), allow_empty=False)
 
