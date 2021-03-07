@@ -86,6 +86,39 @@ class UserAPIView(views.APIView):
         "errors": user_serializer.errors,
       }, status=status.HTTP_200_OK)
 
+  def delete(self, request, format=None):
+    '''
+      Used to delete Users
+
+      expects the following body:
+
+      {
+        "user_username": "owenthurm"
+      }
+    '''
+
+    delete_user_seralizer = serializers.UserUsernameSerializer(data=request.data)
+
+    if delete_user_seralizer.is_valid():
+      user_username = request.data['user_username']
+      try:
+        user_service.delete_user(user_username)
+        return Response({
+          "message": "deleted user",
+          "data": delete_user_seralizer.data,
+        }, status=status.HTTP_200_OK)
+      except Exception as e:
+        return Response({
+          "message": "user with given username not found",
+          "data": delete_user_seralizer.data,
+        }, status=status.HTTP_404_NOT_FOUND)
+    else:
+      return Response({
+        "message": "invalid",
+        "data": delete_user_seralizer.data,
+        "errors": delete_user_seralizer.errors,
+      }, status=status.HTTP_400_BAD_REQUEST)
+
 class PromoAPIView(views.APIView):
   """APIView for Promo Accounts"""
   serializer_class = serializers.GetPromoSerializer
@@ -181,6 +214,39 @@ class PromoAPIView(views.APIView):
         "message": "invalid",
         "data": update_promo_serializer.data,
         "errors": update_promo_serializer.errors,
+      }, status=status.HTTP_400_BAD_REQUEST)
+
+  def delete(self, request, format=None):
+    '''
+      deletes a promo account
+
+      expects the following body:
+
+      {
+        "promo_username": "upcomingstreetwearfashion"
+      }
+    '''
+
+    delete_promo_serializer = serializers.PromoUsernameSerializer(data=request.data)
+
+    if delete_promo_serializer.is_valid():
+      promo_username = request.data['promo_username']
+      try:
+        promo_account_service.delete_promo_account(promo_username)
+        return Response({
+          "message": "deleted promo account",
+          "data": delete_promo_serializer.data,
+        }, status=status.HTTP_200_OK)
+      except Exception as e:
+        return Response({
+          "message": "couldn't find promo account corresponding to username",
+          "data": delete_promo_serializer.data,
+        }, status=status.HTTP_404_NOT_FOUND)
+    else:
+      return Response({
+        "message": "deleted promo accounts",
+        "data": delete_promo_serializer.data,
+        "errors": delete_promo_serializer.errors,
       }, status=status.HTTP_400_BAD_REQUEST)
 
 class AuthenticationAPIView(views.APIView):

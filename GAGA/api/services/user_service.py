@@ -36,6 +36,11 @@ class UserService():
     user_set = user_set_serializer.data
     return user_set
 
+  def delete_user(self, user_username):
+    user = self._get_user_by_username(user_username)
+    user.delete()
+    return user_username
+
   def get_user_id_from_username(self, user_username):
     user = self._get_user_by_username(user_username)
     return user.id
