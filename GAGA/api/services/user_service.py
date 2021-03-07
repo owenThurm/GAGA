@@ -292,7 +292,6 @@ class UserService():
   def _get_promo_object(self, promo_account):
     promo_username = promo_account.promo_username
     promo_total_comments = self.promo_account_service.get_promo_total_comments_num(promo_username)
-    promo_comment_level = self.promo_account_service.get_promo_comment_level(promo_username)
     return {
       "promo_username": promo_account.promo_username,
       "promo_password": promo_account.promo_password,
@@ -306,9 +305,10 @@ class UserService():
       "promo_comments_until_sleep": promo_account.comments_until_sleep,
       "promo_is_liking": promo_account.is_liking,
       "promo_total_comments": promo_total_comments,
-      "promo_comment_level": promo_comment_level,
+      "promo_comment_level": promo_account.comment_level,
       "promo_is_disabled": promo_account.is_disabled,
       "promo_is_resting": promo_account.is_resting,
+      "promo_using_comment_filter": promo_account.using_comment_filter,
     }
 
   def get_username_from_email(self, user_email):

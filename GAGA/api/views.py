@@ -1245,3 +1245,42 @@ class AuthenticateUserWithEmailValidation(views.APIView):
         "errors": authenticate_with_email_serializer.errors,
       }, status=status.HTTP_400_BAD_REQUEST)
 
+class PromoCommentFilterAPIView(views.APIView):
+  '''An APIView for the comment filter status of promo accounts'''
+
+  def put(self, request, format=None):
+    '''
+      Used to update whether or not a promo account is
+      using the user's comment filter
+
+      expects the following body:
+
+      {
+        "promo_username": "upcomingstreetwearfashion",
+        "using_comment_filter": False
+      }
+    '''
+
+    promo_using_comment_filter_serializer = serializers.PromoUsingCommentFilterSerializer(data=request.data)
+
+    if promo_using_comment_filter_serializer.is_valid():
+      #set the using comment filter status
+      promo_username = request.data['promo_username']
+      using_comment_filter = request.data['using_comment_filter']
+      try:
+        promo_account_service.set_promo_using_comment_filter(promo_username, using_comment_filter)
+        return Response({
+          "message": "set promo using comment filter status",
+          "data": promo_using_comment_filter_serializer.data,
+        }, status=status.HTTP_200_OK)
+      except Exception as e:
+        return Response({
+          "message": "no promo account corresponding to given username",
+          "data": promo_using_comment_filter_serializer.data,
+        }, status=status.HTTP_404_NOT_FOUND)
+    else:
+      return Response({
+        "message": "invalid",
+        "data": promo_using_comment_filter_serializer.data,
+        "errors": promo_using_comment_filter_serializer.errors,
+      }, status=status.HTTP_400_BAD_REQUEST)

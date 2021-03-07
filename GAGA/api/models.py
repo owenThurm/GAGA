@@ -91,6 +91,7 @@ class Promo_Account(models.Model):
   is_liking = models.BooleanField(default=True)
   is_disabled = models.BooleanField(default=False)
   is_resting = models.BooleanField(default=False)
+  using_comment_filter = models.BooleanField(default=True)
   comment_level = models.IntegerField(default=5, validators=[MinValueValidator(1), MaxValueValidator(15)])
   increment_comment_level_comment_delta = models.IntegerField(default=400, validators=[MinValueValidator(100)])
   increment_comment_level_comment_number = models.IntegerField(default=400)

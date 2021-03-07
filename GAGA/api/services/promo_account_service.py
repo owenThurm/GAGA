@@ -39,7 +39,6 @@ class PromoAccountService:
   def get_promo_account_data(self, promo_username):
     promo_account = self._get_promo_account(promo_username)
     promo_total_comments = self.get_promo_total_comments_num(promo_username)
-    promo_comment_level = self.get_promo_comment_level(promo_username)
     promo_data = {
       "promo_username": promo_account.promo_username,
       "promo_is_activated": promo_account.activated,
@@ -52,9 +51,10 @@ class PromoAccountService:
       "promo_comments_until_sleep": promo_account.comments_until_sleep,
       "promo_is_liking": promo_account.is_liking,
       "promo_total_comments": promo_total_comments,
-      "promo_comment_level": promo_comment_level,
+      "promo_comment_level": promo_account.comment_level,
       "promo_is_disabled": promo_account.is_disabled,
       "promo_is_resting": promo_account.is_resting,
+      "promo_using_comment_filter": promo_account.using_comment_filter,
     }
     return promo_data
 
@@ -327,3 +327,14 @@ class PromoAccountService:
   def promo_is_resting(self, promo_username):
     promo_account = self._get_promo_account(promo_username)
     return promo_account.is_resting
+
+  def promo_is_using_comment_filter(self, promo_username):
+    promo_account = self._get_promo_account(promo_username)
+    return promo_account.using_comment_filter
+
+  def set_promo_using_comment_filter(self, promo_username, using_comment_filter):
+    promo_account = self._get_promo_account(promo_username)
+    if promo_account.using_comment_filter != using_comment_filter:
+      promo_account.using_comment_filter = using_comment_filter
+      promo_account.save()
+    return using_comment_filter

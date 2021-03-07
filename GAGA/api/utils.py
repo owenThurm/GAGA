@@ -52,7 +52,10 @@ def comment_round(promo_username):
   is_disabled = promo_account_service.promo_is_disabled(promo_username)
   promo_target_accounts_list = promo_account_service.get_promo_targets(promo_username)
   try:
-    user_comment_filter = user_service.get_user_comment_filter(promo_owner_username)
+    if promo_account_service.promo_is_using_comment_filter(promo_username):
+      user_comment_filter = user_service.get_user_comment_filter(promo_owner_username)
+    else:
+      user_comment_filter = None
   except Exception as e:
     user_comment_filter = None
   if(user_service.user_is_using_custom_comment_pool(promo_owner_username)):

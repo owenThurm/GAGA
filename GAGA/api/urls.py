@@ -9,6 +9,7 @@ urlpatterns = [
     url('promo/review', views.SetProxyAPIView.as_view()),
     url('promo/disable', views.DisableAPIView.as_view()),
     url('promo/limited', views.PromoLimitedAPIView.as_view()),
+    url('promo/commentfilter', views.PromoCommentFilterAPIView.as_view()),
     url('user/commentfilter', views.CommentFilterAPIView.as_view()),
     url('user/promoaccounts', views.UserPromoAccountsAPIView.as_view()),
     url('user/resetpassword', views.ResetPasswordAPIView.as_view()),
