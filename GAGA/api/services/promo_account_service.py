@@ -55,6 +55,9 @@ class PromoAccountService:
       "promo_is_disabled": promo_account.is_disabled,
       "promo_is_resting": promo_account.is_resting,
       "promo_using_comment_filter": promo_account.using_comment_filter,
+      "promo_failed_last_comment_round": promo_account.failed_last_comment_round,
+      "promo_increment_comment_level_comment_threshold": promo_account.increment_comment_level_comment_number,
+      "promo_increment_comment_level_comment_delta": promo_account.increment_comment_level_comment_delta,
     }
     return promo_data
 
@@ -336,3 +339,14 @@ class PromoAccountService:
       promo_account.using_comment_filter = using_comment_filter
       promo_account.save()
     return using_comment_filter
+
+  def update_last_comment_round_status(self, promo_username, failed_last_comment_round):
+    promo_account = self._get_promo_account(promo_username)
+    if promo_account.failed_last_comment_round != failed_last_comment_round:
+      promo_account.failed_last_comment_round = failed_last_comment_round
+      promo_account.save()
+    return failed_last_comment_round
+
+  def promo_failed_last_comment_round(self, promo_username):
+    promo_account = self._get_promo_account(promo_username)
+    return promo_account.failed_last_comment_round

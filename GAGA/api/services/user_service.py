@@ -314,6 +314,9 @@ class UserService():
       "promo_is_disabled": promo_account.is_disabled,
       "promo_is_resting": promo_account.is_resting,
       "promo_using_comment_filter": promo_account.using_comment_filter,
+      "promo_failed_last_comment_round": promo_account.failed_last_comment_round,
+      "promo_increment_comment_level_comment_threshold": promo_account.increment_comment_level_comment_number,
+      "promo_increment_comment_level_comment_delta": promo_account.increment_comment_level_comment_delta,
     }
 
   def get_username_from_email(self, user_email):

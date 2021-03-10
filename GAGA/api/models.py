@@ -95,6 +95,7 @@ class Promo_Account(models.Model):
   comment_level = models.IntegerField(default=5, validators=[MinValueValidator(1), MaxValueValidator(15)])
   increment_comment_level_comment_delta = models.IntegerField(default=400, validators=[MinValueValidator(100)])
   increment_comment_level_comment_number = models.IntegerField(default=400)
+  failed_last_comment_round = models.BooleanField(default=False)
 
   REQUIRED_FIELDS = ["promo_username", "promo_password", "target_accounts", "user"]
 

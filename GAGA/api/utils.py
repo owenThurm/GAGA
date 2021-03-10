@@ -51,6 +51,7 @@ def comment_round(promo_username):
   is_liking = promo_account_service.promo_account_is_liking(promo_username)
   is_disabled = promo_account_service.promo_is_disabled(promo_username)
   promo_target_accounts_list = promo_account_service.get_promo_targets(promo_username)
+  promo_failed_last_comment_round = promo_account_service.promo_failed_last_comment_round(promo_username)
   try:
     if promo_account_service.promo_is_using_comment_filter(promo_username):
       user_comment_filter = user_service.get_user_comment_filter(promo_owner_username)
@@ -74,6 +75,7 @@ def comment_round(promo_username):
     'num_comments': number_of_comments_to_do,
     'is_liking': is_liking,
     'comment_filter': user_comment_filter,
+    'failed_last_comment_round': promo_failed_last_comment_round,
   }
 
   logging.debug(f'''Comment round for {promo_username}, targeting {promo_target_accounts_list},

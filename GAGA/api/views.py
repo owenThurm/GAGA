@@ -1141,8 +1141,10 @@ class LambdaCallbackAPIView(views.APIView):
       {
         "promo_username": "upcomingstreetwearfashion",
         "promo_is_liking": True,
-        "commented_on_accounts": ["somerandomcommentedonaccount", "another one", ...]
-        "rotated_target_accounts_list": ["riotsociety", "nike", "adidas", ...]
+        "commented_on_accounts": ["somerandomcommentedonaccount", "another one", ...],
+        "rotated_target_accounts_list": ["riotsociety", "nike", "adidas", ...],
+        "failed_last_comment_round": False,
+        "promo_account_limited": False,
       }
     '''
 
@@ -1153,6 +1155,19 @@ class LambdaCallbackAPIView(views.APIView):
       promo_is_liking = request.data['promo_is_liking']
       commented_on_accounts = request.data['commented_on_accounts']
       rotated_target_accounts_list = request.data['rotated_target_accounts_list']
+      try:
+        failed_last_comment_round = request.data['failed_last_comment_round']
+        promo_account_limited = request.data['promo_account_limited']
+        promo_account_service.update_last_comment_round_status(promo_username, failed_last_comment_round)
+        if promo_account_limited:
+          promo_account_service.disable_promo_account(promo_username)
+          promo_account_service.decrement_promo_comment_level(promo_username)
+          # sets the increment comment level threshold delta to
+          # be 1000 if it's currently less than 1000
+          promo_account_service.increase_increment_comment_level_threshold_delta(promo_username)
+          promo_account_service.increase_increment_comment_level_threshold(promo_username)
+      except Exception as e:
+        pass
       try:
         promo_account_owner_username = promo_account_service.get_promo_account_owner_username(promo_username)
         #add commented accounts to user commented on accounts
@@ -1165,7 +1180,7 @@ class LambdaCallbackAPIView(views.APIView):
         #update the promo comment level (no-op if haven't reached the increment comment number)
         promo_account_service.update_promo_comment_level(promo_username)
         return Response({
-          "message": "added commented on accounts, rotated targets and set liking status",
+          "message": "successfully logged promo comment round data",
           "data": lambda_callback_serializer.data,
         }, status=status.HTTP_200_OK)
       except Exception as e:

@@ -54,10 +54,11 @@ class GetPromoSerializer(serializers.ModelSerializer):
   """Serializes a User's Promo Account"""
   class Meta:
     model = Promo_Account
-    fields = ('promo_username', 'target_accounts', 'user',
-              'activated', 'under_review', 'comment_rounds_today', 'is_queued',
-              'is_disabled', 'proxy', 'comments_until_sleep', 'is_liking', 'comment_level',
-              'increment_comment_level_comment_delta', 'increment_comment_level_comment_number')
+    fields = ('promo_username', 'target_accounts', 'user', 'activated',
+              'under_review', 'comment_rounds_today', 'is_queued', 'is_disabled',
+              'proxy', 'comments_until_sleep', 'is_liking', 'comment_level',
+              'increment_comment_level_comment_delta', 'increment_comment_level_comment_number',
+              'failed_last_comment_round')
 
 class CommentedAccountsSerializer(serializers.Serializer):
   """Serializes accounts commented on for a given user"""
