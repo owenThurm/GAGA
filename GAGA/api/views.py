@@ -1133,7 +1133,8 @@ class LambdaCallbackAPIView(views.APIView):
   def post(self, request, format=None):
     '''
       Used to add the newly commented on accounts to the user,
-      and set the target accounts list to the newly rotated list.
+      set the target accounts list to the newly rotated list,
+      and set the is_liking status of the promo.
 
       expects the following body:
 

@@ -1,8 +1,27 @@
 from rest_framework import serializers
 from .models import User, Promo_Account, Commented_On_Account, CustomComment
 
+def has_no_spaces(phrase):
+  return len(phrase.replace(' ', '')) == len(phrase)
+
 class UserSerializer(serializers.ModelSerializer):
   """Serializes a Genuine Apparel User"""
+
+  def validate_username(self, username):
+    """
+      Check that the username has no spaces
+    """
+    if not has_no_spaces(username):
+      raise serializers.ValidationError('username cannot have spaces')
+    return username
+
+  def validate_password(self, password):
+    """
+      Check that the password has no spaces
+    """
+    if not has_no_spaces(password):
+      raise serializers.ValidationError('password cannot have spaces')
+    return password
 
   class Meta:
     model = User

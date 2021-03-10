@@ -211,10 +211,8 @@ class PromoAccountService:
     promo_account = self._get_promo_account(promo_username)
     number_of_comments_to_subtract = len(commented_on_accounts_list)
     promo_account_comments_until_sleep = promo_account.comments_until_sleep
-    print(number_of_comments_to_subtract)
     promo_account.comments_until_sleep = promo_account_comments_until_sleep - number_of_comments_to_subtract
     promo_account.save()
-    print(promo_account.comments_until_sleep)
     return promo_account.comments_until_sleep
 
   def promo_should_sleep_a_day(self, promo_username):
