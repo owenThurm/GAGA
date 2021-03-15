@@ -204,6 +204,8 @@ class LambdaCallbackSerializer(serializers.Serializer):
   promo_is_liking = serializers.BooleanField()
   commented_on_accounts = serializers.ListSerializer(child=serializers.CharField(max_length=30))
   rotated_target_accounts_list = serializers.ListSerializer(child=serializers.CharField(max_length=30), allow_empty=False)
+  failed_last_comment_round = serializers.BooleanField()
+  promo_account_limited = serializers.BooleanField()
 
 class PromoUsingCommentFilterSerializer(serializers.Serializer):
   """Serializes a request to update a promo account's using_filter status"""

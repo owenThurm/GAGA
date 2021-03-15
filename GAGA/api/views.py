@@ -1166,9 +1166,6 @@ class LambdaCallbackAPIView(views.APIView):
           # be 1000 if it's currently less than 1000
           promo_account_service.increase_increment_comment_level_threshold_delta(promo_username)
           promo_account_service.increase_increment_comment_level_threshold(promo_username)
-      except Exception as e:
-        pass
-      try:
         promo_account_owner_username = promo_account_service.get_promo_account_owner_username(promo_username)
         #add commented accounts to user commented on accounts
         user_service.add_commented_on_accounts(promo_account_owner_username, promo_username, commented_on_accounts)
